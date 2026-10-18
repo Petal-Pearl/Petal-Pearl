@@ -1311,6 +1311,7 @@
           .in("id", ["header", "footer", "catalog_settings"]);
         if (error) throw error;
         const settings = Object.fromEntries((data || []).map(row => [row.id, row.data]));
+        let seededSettings = false;
         if (settings.header && typeof settings.header === "object") {
           headerData = { ...headerData, ...settings.header };
           localStorage.setItem("petal_pearl_header", JSON.stringify(headerData));
@@ -1321,6 +1322,7 @@
             { onConflict: "id" }
           );
           if (saveError) throw saveError;
+          seededSettings = true;
         }
         if (settings.footer && typeof settings.footer === "object") {
           footerData = { ...footerData, ...settings.footer };
@@ -1332,6 +1334,7 @@
             { onConflict: "id" }
           );
           if (saveError) throw saveError;
+          seededSettings = true;
         }
         if (settings.catalog_settings && typeof settings.catalog_settings === "object") {
           const sharedCatalog = settings.catalog_settings;
@@ -1356,9 +1359,16 @@
             { onConflict: "id" }
           );
           if (saveError) throw saveError;
+          seededSettings = true;
+        }
+        if (seededSettings && isAdmin) {
+          alert("Загальні налаштування Petal & Pearl вперше збережені в Supabase. Тепер відкрий сайт на іншому пристрої та онови сторінку.");
         }
       } catch (error) {
-        console.error("Could not load shared site settings:", error.message);
+        console.error("Could not load shared site settings:", error);
+        if (isAdmin) {
+          alert("Не вдалося синхронізувати налаштування через Supabase. Перевір підключення та права доступу. Деталі: " + (error?.message || String(error)));
+        }
       }
     }
 
