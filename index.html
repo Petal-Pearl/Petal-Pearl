@@ -809,13 +809,19 @@
         <div>
           <label class="block text-xs font-bold text-vintage-green mb-1"><i class="fa-solid fa-images text-vintage-gold mr-1"></i> Галерея фото товару (до 5 штук)</label>
           <div class="space-y-3 bg-white/80 p-3 rounded-lg border border-vintage-border">
+            <div class="rounded-lg border border-vintage-gold/60 bg-vintage-cream p-3 space-y-2">
+              <label for="prodBulkImgFiles" class="block text-xs font-bold text-vintage-green"><i class="fa-solid fa-cloud-arrow-up mr-1 text-vintage-gold"></i>Завантажити багато фото одразу</label>
+              <input type="file" id="prodBulkImgFiles" accept="image/jpeg,image/png,image/webp" multiple onchange="handleBulkImageUpload(event)" class="w-full text-xs border border-vintage-border rounded-lg p-2 bg-white cursor-pointer">
+              <p class="text-[11px] text-gray-600">Можна вибрати одразу кілька JPG, PNG або WebP. До 30 фото за раз, кожне до 10 МБ. Фото додадуться до галереї цього товару.</p>
+              <p id="prodBulkImgStatus" class="text-xs font-semibold text-vintage-green" aria-live="polite"></p>
+            </div>
             
             <!-- Слот 1 -->
             <div class="space-y-1">
               <span class="text-[11px] font-bold text-vintage-green">1. Головне фото (файл JPEG або URL):</span>
               <div class="flex gap-2">
                 <input type="file" id="prodImgFile0" accept="image/jpeg, image/jpg" onchange="handleMultiImageUpload(event, 0)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
-                <input type="text" id="prodImg0" oninput="updateImagesFromInputs()" placeholder="https://..." class="w-1/2 border border-vintage-border rounded p-1 text-xs bg-white">
+                <input type="text" id="prodImg0" class="product-image-url w-1/2 border border-vintage-border rounded p-1 text-xs bg-white" oninput="updateImagesFromInputs()" placeholder="https://...">
               </div>
             </div>
 
@@ -824,7 +830,7 @@
               <span class="text-[11px] font-semibold text-gray-700">2. Додаткове фото №2:</span>
               <div class="flex gap-2">
                 <input type="file" id="prodImgFile1" accept="image/jpeg, image/jpg" onchange="handleMultiImageUpload(event, 1)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
-                <input type="text" id="prodImg1" oninput="updateImagesFromInputs()" placeholder="https://..." class="w-1/2 border border-vintage-border rounded p-1 text-xs bg-white">
+                <input type="text" id="prodImg1" class="product-image-url w-1/2 border border-vintage-border rounded p-1 text-xs bg-white" oninput="updateImagesFromInputs()" placeholder="https://...">
               </div>
             </div>
 
@@ -833,7 +839,7 @@
               <span class="text-[11px] font-semibold text-gray-700">3. Додаткове фото №3:</span>
               <div class="flex gap-2">
                 <input type="file" id="prodImgFile2" accept="image/jpeg, image/jpg" onchange="handleMultiImageUpload(event, 2)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
-                <input type="text" id="prodImg2" oninput="updateImagesFromInputs()" placeholder="https://..." class="w-1/2 border border-vintage-border rounded p-1 text-xs bg-white">
+                <input type="text" id="prodImg2" class="product-image-url w-1/2 border border-vintage-border rounded p-1 text-xs bg-white" oninput="updateImagesFromInputs()" placeholder="https://...">
               </div>
             </div>
 
@@ -842,7 +848,7 @@
               <span class="text-[11px] font-semibold text-gray-700">4. Додаткове фото №4:</span>
               <div class="flex gap-2">
                 <input type="file" id="prodImgFile3" accept="image/jpeg, image/jpg" onchange="handleMultiImageUpload(event, 3)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
-                <input type="text" id="prodImg3" oninput="updateImagesFromInputs()" placeholder="https://..." class="w-1/2 border border-vintage-border rounded p-1 text-xs bg-white">
+                <input type="text" id="prodImg3" class="product-image-url w-1/2 border border-vintage-border rounded p-1 text-xs bg-white" oninput="updateImagesFromInputs()" placeholder="https://...">
               </div>
             </div>
 
@@ -851,10 +857,11 @@
               <span class="text-[11px] font-semibold text-gray-700">5. Додаткове фото №5:</span>
               <div class="flex gap-2">
                 <input type="file" id="prodImgFile4" accept="image/jpeg, image/jpg" onchange="handleMultiImageUpload(event, 4)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
-                <input type="text" id="prodImg4" oninput="updateImagesFromInputs()" placeholder="https://..." class="w-1/2 border border-vintage-border rounded p-1 text-xs bg-white">
+                <input type="text" id="prodImg4" class="product-image-url w-1/2 border border-vintage-border rounded p-1 text-xs bg-white" oninput="updateImagesFromInputs()" placeholder="https://...">
               </div>
             </div>
 
+            <div id="productExtraImages" class="space-y-2"></div>
             <!-- Попередній перегляд -->
             <div class="pt-2 border-t border-vintage-border/60">
               <span class="text-[11px] font-bold text-vintage-green block mb-1">Попередній перегляд галереї:</span>
@@ -1819,15 +1826,78 @@
       })().catch(err => alert("Помилка завантаження: " + err.message));
     }
 
+    function addProductImageUrlInput(value = "") {
+      const container = document.getElementById("productExtraImages");
+      const existing = Array.from(document.querySelectorAll(".product-image-url"));
+      const nextIndex = existing.reduce((max, input) => {
+        const match = input.id.match(/^prodImg(\d+)$/);
+        return match ? Math.max(max, Number(match[1])) : max;
+      }, 4) + 1;
+      const row = document.createElement("div");
+      row.className = "flex gap-2 items-center";
+      row.innerHTML = '<input type="text" id="prodImg' + nextIndex + '" class="product-image-url flex-1 min-w-0 border border-vintage-border rounded p-2 text-xs bg-white" placeholder="https://..." oninput="updateImagesFromInputs()"><button type="button" class="px-3 py-2 text-xs rounded bg-red-50 text-red-700 border border-red-200">Видалити</button>';
+      row.querySelector("input").value = value;
+      row.querySelector("button").addEventListener("click", () => { row.remove(); updateImagesFromInputs(); });
+      container.appendChild(row);
+      updateImagesFromInputs();
+      return row.querySelector("input");
+    }
+
+    async function handleBulkImageUpload(e) {
+      const input = e.target;
+      const files = Array.from(input.files || []);
+      const status = document.getElementById("prodBulkImgStatus");
+      if (!files.length) return;
+      if (!isAdmin) { alert("Увійдіть як адміністратор перед завантаженням фото."); input.value = ""; return; }
+      if (files.length > 30) { alert("За один раз можна вибрати не більше 30 фото."); input.value = ""; return; }
+      const invalid = files.find(file => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024);
+      if (invalid) {
+        alert('Файл "' + invalid.name + '" має неправильний формат або перевищує 10 МБ. Оберіть JPG, PNG чи WebP до 10 МБ кожне.');
+        input.value = "";
+        return;
+      }
+      const { data: authData, error: sessionError } = await supabaseClient.auth.getSession();
+      if (sessionError || !authData.session || authData.session.user.email !== "petalpearlflowers@gmail.com") {
+        alert("Увійдіть як адміністратор перед завантаженням фото.");
+        input.value = "";
+        return;
+      }
+      const urlInputs = Array.from(document.querySelectorAll(".product-image-url"));
+      let completed = 0;
+      const failed = [];
+      status.textContent = "Завантажено 0 з " + files.length + "…";
+      for (const file of files) {
+        try {
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+          const path = "products/" + Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "-" + safeName;
+          const { error } = await supabaseClient.storage.from("product-photos").upload(path, file, { contentType: file.type, upsert: false });
+          if (error) throw error;
+          const { data } = supabaseClient.storage.from("product-photos").getPublicUrl(path);
+          const emptyInput = urlInputs.find(el => !el.value.trim());
+          if (emptyInput) {
+            emptyInput.value = data.publicUrl;
+          } else {
+            urlInputs.push(addProductImageUrlInput(data.publicUrl));
+          }
+          completed++;
+        } catch (error) {
+          failed.push(file.name + ": " + (error.message || "помилка"));
+        }
+        status.textContent = "Завантажено " + completed + " з " + files.length + (failed.length ? "; помилок: " + failed.length : "") + "…";
+      }
+      updateImagesFromInputs();
+      status.textContent = "Готово: " + completed + " фото додано" + (failed.length ? ", не вдалося завантажити " + failed.length : "") + ".";
+      if (failed.length) alert("Не вдалося завантажити деякі фото:\n" + failed.join("\n"));
+      input.value = "";
+    }
+
     function updateImagesFromInputs() {
       const container = document.getElementById('adminImagesPreviewList');
       let html = '';
-      for (let i = 0; i < 5; i++) {
-        const val = document.getElementById(`prodImg${i}`).value.trim();
-        if (val) {
-          html += `<img src="${val}" class="w-16 h-16 object-cover rounded-lg border-2 border-vintage-gold shadow-md">`;
-        }
-      }
+      document.querySelectorAll(".product-image-url").forEach(input => {
+        const val = input.value.trim();
+        if (val) html += '<img src="' + val.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '" class="w-16 h-16 object-cover rounded-lg border-2 border-vintage-gold shadow-md" alt="Попередній перегляд фото товару">';
+      });
       container.innerHTML = html || '<span class="text-xs text-gray-400 italic">Фото не додано</span>';
     }
 
@@ -2048,6 +2118,9 @@
         document.getElementById(`prodImg${i}`).value = "";
         document.getElementById(`prodImgFile${i}`).value = "";
       }
+      document.getElementById("productExtraImages").innerHTML = "";
+      document.getElementById("prodBulkImgFiles").value = "";
+      document.getElementById("prodBulkImgStatus").textContent = "";
       
       document.getElementById('prodVideo').value = "";
       document.getElementById('prodVideoFile').value = "";
@@ -2078,6 +2151,10 @@
         document.getElementById(`prodImg${i}`).value = (p.images && p.images[i]) ? p.images[i] : "";
         document.getElementById(`prodImgFile${i}`).value = "";
       }
+      document.getElementById("productExtraImages").innerHTML = "";
+      document.getElementById("prodBulkImgFiles").value = "";
+      document.getElementById("prodBulkImgStatus").textContent = "";
+      (p.images || []).slice(5).forEach(url => addProductImageUrlInput(url));
 
       document.getElementById('prodVideo').value = p.video || "";
       document.getElementById('prodVideoFile').value = "";
@@ -2101,11 +2178,9 @@
       const retailPrice = parseFloat(document.getElementById('prodRetailPrice').value);
       const multiplicity = parseInt(document.getElementById('prodMultiplicity').value);
       
-      let imagesArr = [];
-      for (let i = 0; i < 5; i++) {
-        const val = document.getElementById(`prodImg${i}`).value.trim();
-        if (val) imagesArr.push(val);
-      }
+      let imagesArr = Array.from(document.querySelectorAll(".product-image-url"))
+        .map(input => input.value.trim())
+        .filter(Boolean);
       if (imagesArr.length === 0) {
         imagesArr = ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"];
       }
