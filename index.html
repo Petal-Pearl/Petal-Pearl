@@ -1042,26 +1042,79 @@
 
       const audio = document.getElementById('bgAudio');
       audio.volume = 0.5;
+
+      // Синхронізуємо індикатор із реальним станом аудіоплеєра.
+      audio.addEventListener('playing', () => {
+        isMusicPlaying = true;
+        updateMusicButtonUI();
+      });
+      audio.addEventListener('pause', () => {
+        isMusicPlaying = false;
+        updateMusicButtonUI();
+      });
+      audio.addEventListener('ended', () => {
+        isMusicPlaying = false;
+        updateMusicButtonUI();
+      });
+
+      // Пробуємо запустити музику одразу. Браузер може вимагати дію користувача.
+      startBackgroundMusic();
+
+      // Перший клік або дотик у будь-якому місці сайту запускає музику.
+      // Саму кнопку керування не перехоплюємо, щоб вона могла вимикати звук.
+      document.addEventListener('pointerdown', (event) => {
+        if (event.target.closest && event.target.closest('#musicToggleBtn')) return;
+        startBackgroundMusic();
+      }, { capture: true, passive: true });
+
+      // Підтримуємо запуск клавіатурою, не заважаючи кнопці перемикання.
+      document.addEventListener('keydown', (event) => {
+        if (event.target.closest && event.target.closest('#musicToggleBtn')) return;
+        if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
+        startBackgroundMusic();
+      }, true);
     };
+
+    function startBackgroundMusic() {
+      const audio = document.getElementById('bgAudio');
+      if (!audio) return;
+      if (!audio.paused && !audio.ended) {
+        isMusicPlaying = true;
+        updateMusicButtonUI();
+        return;
+      }
+
+      const playAttempt = audio.play();
+      if (playAttempt && typeof playAttempt.then === 'function') {
+        playAttempt.then(() => {
+          isMusicPlaying = true;
+          updateMusicButtonUI();
+        }).catch(() => {
+          // Автовідтворення може бути заборонене до першої дії користувача.
+          isMusicPlaying = false;
+          updateMusicButtonUI();
+        });
+      }
+    }
 
     function toggleBackgroundMusic() {
       const audio = document.getElementById('bgAudio');
-      if (isMusicPlaying) {
+      if (!audio) return;
+
+      if (!audio.paused && !audio.ended) {
         audio.pause();
         isMusicPlaying = false;
+        updateMusicButtonUI();
       } else {
-        audio.play().then(() => {
-          isMusicPlaying = true;
-        }).catch(() => {
-          alert('Блокування браузера: будь ласка, зробіть ще один клік на сторінці для активації звуку.');
-        });
+        startBackgroundMusic();
       }
-      updateMusicButtonUI();
     }
 
     function updateMusicButtonUI() {
       const icon = document.getElementById('musicIcon');
       const text = document.getElementById('musicText');
+      if (!icon || !text) return;
+
       if (isMusicPlaying) {
         icon.className = "fa-solid fa-volume-high text-emerald-400 animate-pulse";
         text.innerText = "Музика: Грає";
