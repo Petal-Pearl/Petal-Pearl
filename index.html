@@ -2143,7 +2143,7 @@
             <td class="font-bold text-amber-900 font-serif text-base"><span class="${pStyle}">${p.wholesalePrice} грн</span></td>
             <td class="font-semibold text-vintage-green font-serif text-base"><span class="${pStyle}">${p.retailPrice} грн</span></td>
             <td class="text-center">
-              <input type="number" id="qty-${p.id}" value="${p.multiplicity}" step="${p.multiplicity}" min="${p.multiplicity}" class="w-20 border border-vintage-border rounded-lg text-center p-1 font-semibold text-sm bg-vintage-cream">
+              <input type="number" id="qty-${p.id}" value="1" step="1" min="1" aria-label="Кількість ${p.name}" class="w-20 border border-vintage-border rounded-lg text-center p-1 font-semibold text-sm bg-vintage-cream">
             </td>
             <td class="text-right">
               <button onclick="addCustomToCart(${p.id})" class="bg-vintage-green text-white px-3.5 py-1.5 rounded-lg hover:bg-vintage-greenLight text-xs font-semibold shadow border border-vintage-gold">
@@ -2342,7 +2342,7 @@
 
     function addToCart(id) {
       const p = products.find(item => item.id === id);
-      cart[id] = (cart[id] || 0) + p.multiplicity;
+      cart[id] = (cart[id] || 0) + 1;
       updateCartUI();
     }
 
@@ -2361,7 +2361,7 @@
     }
 
     function updateCartUI() {
-      const count = Object.keys(cart).length;
+      const count = Object.keys(cart).reduce((sum, id) => sum + (Number(cart[id]) || 0), 0);
       document.getElementById('cartBadge').innerText = count;
       const container = document.getElementById('cartItems');
       let total = 0;
@@ -2376,7 +2376,7 @@
         const p = products.find(item => item.id == id);
         if (!p) return '';
         const qty = cart[id];
-        const priceToUse = qty >= p.multiplicity ? p.wholesalePrice : p.retailPrice;
+        const priceToUse = qty > 10 ? p.wholesalePrice : p.retailPrice;
         const sum = priceToUse * qty;
         total += sum;
 
