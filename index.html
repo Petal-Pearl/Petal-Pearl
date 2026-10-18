@@ -117,7 +117,7 @@
 
   <!-- Аудіоплеєр для фонової музики по колу -->
   <audio id="bgAudio" loop preload="auto">
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    <source id="bgAudioSource" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
     Ваш браузер не підтримує аудіо елемент.
   </audio>
 
@@ -612,6 +612,13 @@
           </div>
         </div>
 
+        <div class="bg-white/80 p-3 rounded-lg border border-vintage-border space-y-2">
+          <label class="block text-xs font-bold text-vintage-green mb-1">Фонова музика (MP3)</label>
+          <input type="file" id="musicFile" accept="audio/mpeg,.mp3" class="w-full text-xs border border-vintage-border rounded-lg p-1.5 bg-white">
+          <input type="url" id="editMusicUrl" placeholder="Пряме посилання на MP3" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          <p class="text-[11px] text-gray-600">Завантажте MP3 до 25 МБ або вставте пряме посилання. Звук буде доступний відвідувачам сайту.</p>
+          <button type="button" onclick="previewMusicUpload()" class="px-3 py-1.5 text-xs rounded border border-vintage-gold">Перевірити звук</button>
+        </div>
         <hr class="border-vintage-border">
 
         <div>
@@ -996,6 +1003,7 @@
       phone: "+38 (095) 544-01-67",
       hours: "Пн-Нд: 08:00 - 20:00",
       logo: "https://lh3.googleusercontent.com/d/1mWStnjc8PAIUXY8zk5QaeDMIuIEJG9X5",
+      musicUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
       heroBadge: "Повний асортимент гуртового склада",
       heroTitle: "Пелюстки краси та перлини вишуканості",
       heroDesc: "Ласкаво просимо до вишуканої квіткової крамниці «Petal & Pearl». У нас зібрано повний асортимент зрізаних троянд, хризантем, еустом, горшкових рослин, декору та витонченої фурнітури в старовинному класичному стилі."
@@ -1253,6 +1261,8 @@
 
     function applyHeaderData() {
       document.getElementById('siteTitleDisplay').innerText = decodeDisplayEntities(headerData.title);
+      const audioSource = document.getElementById('bgAudioSource');
+      if (audioSource && headerData.musicUrl && audioSource.src !== headerData.musicUrl) { audioSource.src = headerData.musicUrl; document.getElementById('bgAudio').load(); }
       document.getElementById('siteSubtitleDisplay').innerText = decodeDisplayEntities(headerData.subtitle);
       document.getElementById('sitePhoneDisplay').innerText = headerData.phone;
       document.getElementById('siteHoursDisplay').innerText = headerData.hours;
@@ -1849,6 +1859,36 @@
       filterProducts();
     }
 
+    async function previewMusicUpload() {
+      const file = document.getElementById('musicFile')?.files?.[0];
+      const url = document.getElementById('editMusicUrl')?.value.trim();
+      const audio = document.getElementById('bgAudio');
+      if (file) {
+        if (file.size > 25 * 1024 * 1024) { alert('MP3 має бути не більше 25 МБ.'); return; }
+        audio.src = URL.createObjectURL(file);
+      } else if (url) { audio.src = url; }
+      else { alert('Оберіть MP3-файл або вставте пряме посилання.'); return; }
+      audio.load();
+      try { await audio.play(); musicUserDisabled = false; }
+      catch (error) { alert('Не вдалося відтворити файл. Перевірте формат MP3 та пряме посилання.'); console.error(error); }
+    }
+
+    async function uploadMusicFileIfSelected() {
+      const file = document.getElementById('musicFile')?.files?.[0];
+      if (!file) return;
+      if (!isAdmin) throw new Error('Увійдіть як адміністратор перед завантаженням музики.');
+      if (file.size > 25 * 1024 * 1024) throw new Error('MP3 має бути не більше 25 МБ.');
+      if (!/\.mp3$/i.test(file.name) && file.type !== 'audio/mpeg') throw new Error('Підтримуються лише MP3-файли.');
+      showSaveStatus('loading', 'Завантажуємо MP3…', 'Зачекайте, не закривайте вікно.');
+      const path = 'music/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const { error } = await supabaseClient.storage.from('product-videos').upload(path, file, { contentType: 'audio/mpeg', upsert: true });
+      if (error) throw error;
+      const { data } = supabaseClient.storage.from('product-videos').getPublicUrl(path);
+      if (!data?.publicUrl) throw new Error('Не вдалося отримати публічне посилання на MP3.');
+      headerData.musicUrl = data.publicUrl;
+      document.getElementById('editMusicUrl').value = data.publicUrl;
+    }
+
     function openEditHeaderModal() {
       if (!isAdmin) return;
       document.getElementById('editHeaderTitle').value = headerData.title;
@@ -1856,6 +1896,7 @@
       document.getElementById('editHeaderPhone').value = headerData.phone;
       document.getElementById('editHeaderHours').value = headerData.hours;
       document.getElementById('editHeaderLogo').value = headerData.logo;
+      document.getElementById('editMusicUrl').value = headerData.musicUrl || document.getElementById('bgAudioSource').src;
       document.getElementById('editHeroBadge').value = headerData.heroBadge;
       document.getElementById('editHeroTitle').value = headerData.heroTitle;
       document.getElementById('editHeroDesc').value = headerData.heroDesc;
@@ -1875,11 +1916,13 @@
     async function saveHeaderForm(e) {
       e.preventDefault();
       if (!isAdmin) return;
+      try { await uploadMusicFileIfSelected(); } catch (error) { showSaveStatus('error', 'Не вдалося завантажити MP3', error.message || 'Перевірте файл та доступ до сховища.', true); return; }
       headerData.title = sanitizeHTML(document.getElementById('editHeaderTitle').value);
       headerData.subtitle = sanitizeHTML(document.getElementById('editHeaderSubtitle').value);
       headerData.phone = sanitizeHTML(document.getElementById('editHeaderPhone').value);
       headerData.hours = sanitizeHTML(document.getElementById('editHeaderHours').value);
       headerData.logo = document.getElementById('editHeaderLogo').value || "https://lh3.googleusercontent.com/d/1mWStnjc8PAIUXY8zk5QaeDMIuIEJG9X5";
+      headerData.musicUrl = document.getElementById('editMusicUrl').value.trim() || headerData.musicUrl;
       headerData.heroBadge = sanitizeHTML(document.getElementById('editHeroBadge').value);
       headerData.heroTitle = sanitizeHTML(document.getElementById('editHeroTitle').value);
       headerData.heroDesc = sanitizeHTML(document.getElementById('editHeroDesc').value);
