@@ -1274,28 +1274,34 @@
       openModal('changePasswordModal');
     }
 
-    function handleChangePassword(e) {
+    async function handleChangePassword(e) {
       e.preventDefault();
       if (!isAdmin) return;
       const oldPass = document.getElementById('oldPasswordInput').value;
       const newPass = document.getElementById('newPasswordInput').value;
       const confirmPass = document.getElementById('confirmPasswordInput').value;
-
-      if (oldPass !== getCurrentAdminPassword()) {
-        alert('Поточний пароль введено невірно!');
-        return;
-      }
-      if (newPass.length < 4) {
-        alert('Новий пароль занадто короткий (мінімум 4 символи)!');
+      if (newPass.length < 8) {
+        alert('Новий пароль має містити щонайменше 8 символів.');
         return;
       }
       if (newPass !== confirmPass) {
         alert('Нові паролі не збігаються!');
         return;
       }
-
-      localStorage.setItem('petal_pearl_admin_pass', newPass);
-      alert('Пароль успішно змінено!');
+      const { error: loginError } = await supabaseClient.auth.signInWithPassword({
+        email: "petalpearlflowers@gmail.com",
+        password: oldPass
+      });
+      if (loginError) {
+        alert('Поточний пароль введено невірно!');
+        return;
+      }
+      const { error } = await supabaseClient.auth.updateUser({ password: newPass });
+      if (error) {
+        alert('Не вдалося змінити пароль: ' + error.message);
+        return;
+      }
+      alert('Пароль адміністратора Supabase успішно змінено.');
       closeModal('changePasswordModal');
     }
 
