@@ -100,9 +100,20 @@
     .gpay-btn-custom:hover {
       background-color: #222;
     }
+    #saveStatusToast { position: fixed; right: 20px; bottom: 20px; z-index: 99999; width: min(390px, calc(100vw - 32px)); padding: 14px 16px; border-radius: 14px; color: #fff; box-shadow: 0 12px 35px rgba(0,0,0,.22); display: flex; align-items: flex-start; gap: 11px; opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity .22s ease, transform .22s ease; font-size: 14px; line-height: 1.45; }
+    #saveStatusToast.show { opacity: 1; transform: translateY(0); }
+    #saveStatusToast[data-state="loading"] { background: #4b5563; }
+    #saveStatusToast[data-state="success"] { background: #166534; }
+    #saveStatusToast[data-state="error"] { background: #b91c1c; }
+    #saveStatusToast .save-status-icon { font-size: 18px; line-height: 1.2; font-weight: 700; }
   </style>
 </head>
 <body class="font-sans min-h-screen flex flex-col catalog-vintage-bg">
+
+  <div id="saveStatusToast" role="status" aria-live="polite" data-state="loading">
+    <span class="save-status-icon" id="saveStatusIcon">…</span>
+    <div><div id="saveStatusTitle" class="font-bold">Збереження…</div><div id="saveStatusMessage">Зачекайте, будь ласка.</div></div>
+  </div>
 
   <!-- Аудіоплеєр для фонової музики по колу -->
   <audio id="bgAudio" loop preload="auto">
@@ -1264,9 +1275,27 @@
       if (document.getElementById('footerFacebookLink')) document.getElementById('footerFacebookLink').href = footerData.facebook || "https://www.facebook.com";
     }
 
+    let saveStatusTimer = null;
+    function showSaveStatus(state, title, message, persistent = false) {
+      const toast = document.getElementById("saveStatusToast");
+      if (!toast) return;
+      const icons = { loading: "…", success: "✓", error: "!" };
+      document.getElementById("saveStatusIcon").textContent = icons[state] || "•";
+      document.getElementById("saveStatusTitle").textContent = title;
+      document.getElementById("saveStatusMessage").textContent = message || "";
+      toast.dataset.state = state;
+      toast.classList.add("show");
+      if (saveStatusTimer) clearTimeout(saveStatusTimer);
+      saveStatusTimer = null;
+      if (!persistent && state !== "loading") {
+        saveStatusTimer = setTimeout(() => toast.classList.remove("show"), state === "error" ? 9000 : 5000);
+      }
+    }
+
     async function saveProductsState() {
+      showSaveStatus("loading", "Зберігаємо каталог…", "Надсилаємо зміни до спільної бази.");
       if (!isAdmin) {
-        alert("Увійдіть як адміністратор, щоб зберегти товар у спільному каталозі.");
+        showSaveStatus("error", "Не збережено в хмарі", "Увійдіть як адміністратор, щоб зберегти товар для всіх пристроїв.");
         return false;
       }
       try {
@@ -1287,10 +1316,11 @@
         }
         localStorage.setItem("petal_pearl_products", JSON.stringify(products));
         renderCategoryNav();
+        showSaveStatus("success", "Збережено!", "Каталог збережено в Supabase. Тепер можна перевіряти сайт на іншому пристрої.");
         return true;
       } catch (error) {
         console.error("Cloud catalog save failed:", error);
-        alert("Товар НЕ збережено у спільному каталозі. " + (error.message || "Невідома помилка") + "\nПеревірте вхід адміністратора та спробуйте ще раз.");
+        showSaveStatus("error", "Не вдалося зберегти", error.message || "Невідома помилка. Перевірте з'єднання та повторіть спробу.", true);
         return false;
       }
     }
@@ -1310,58 +1340,69 @@
       }
     }
 
-    function saveCategoriesState() {
-      localStorage.setItem('petal_pearl_categories', JSON.stringify(categoriesList));
-      localStorage.setItem('petal_pearl_system_tabs', JSON.stringify(systemTabs));
+    async function saveCategoriesState(silent = false) {
       renderCategoryNav();
-      if (isAdmin) {
-        supabaseClient.from("site_settings").upsert(
-          {
-            id: "catalog_settings",
-            data: { categoriesList, systemTabs },
-            updated_at: new Date().toISOString()
-          },
+      if (!isAdmin) {
+        localStorage.setItem('petal_pearl_categories', JSON.stringify(categoriesList));
+        localStorage.setItem('petal_pearl_system_tabs', JSON.stringify(systemTabs));
+        if (!silent) showSaveStatus("error", "Не збережено в хмарі", "Зміни категорій залишилися тільки в цьому браузері. Увійдіть як адміністратор.");
+        return false;
+      }
+      if (!silent) showSaveStatus("loading", "Зберігаємо категорії…", "Синхронізуємо категорії для всіх пристроїв.");
+      try {
+        const { error } = await supabaseClient.from("site_settings").upsert(
+          { id: "catalog_settings", data: { categoriesList, systemTabs }, updated_at: new Date().toISOString() },
           { onConflict: "id" }
-        ).then(({ error }) => {
-          if (error) {
-            console.error("Could not sync shared categories:", error.message);
-            alert("Категорії збережені локально, але не синхронізовані: " + error.message);
-          }
-        });
+        );
+        if (error) throw error;
+        localStorage.setItem('petal_pearl_categories', JSON.stringify(categoriesList));
+        localStorage.setItem('petal_pearl_system_tabs', JSON.stringify(systemTabs));
+        if (!silent) showSaveStatus("success", "Категорії збережено!", "Зміни збережені у спільній базі.");
+        return true;
+      } catch (error) {
+        console.error("Could not sync shared categories:", error.message);
+        if (!silent) showSaveStatus("error", "Не вдалося зберегти категорії", error.message || "Перевірте з'єднання та повторіть спробу.", true);
+        return false;
       }
     }
 
-    function saveHeaderState() {
-      localStorage.setItem('petal_pearl_header', JSON.stringify(headerData));
+    async function saveHeaderState() {
       applyHeaderData();
-      if (isAdmin) {
-        supabaseClient.from("site_settings").upsert(
+      showSaveStatus("loading", "Зберігаємо шапку сайту…", "Синхронізуємо зміни.");
+      try {
+        if (!isAdmin) throw new Error("Увійдіть як адміністратор, щоб зберегти зміни для всіх пристроїв.");
+        const { error } = await supabaseClient.from("site_settings").upsert(
           { id: "header", data: headerData, updated_at: new Date().toISOString() },
           { onConflict: "id" }
-        ).then(({ error }) => {
-          if (error) {
-            console.error("Could not sync shared header settings:", error.message);
-            alert("Зміни банера збережені лише в цьому браузері. Не вдалося синхронізувати: " + error.message);
-          } else {
-            localStorage.setItem("petal_pearl_header", JSON.stringify(headerData));
-          }
-        });
+        );
+        if (error) throw error;
+        localStorage.setItem("petal_pearl_header", JSON.stringify(headerData));
+        showSaveStatus("success", "Зміни збережено!", "Шапка сайту збережена у спільній базі.");
+        return true;
+      } catch (error) {
+        console.error("Could not sync shared header settings:", error.message);
+        showSaveStatus("error", "Не вдалося зберегти зміни", error.message || "Спробуйте ще раз.", true);
+        return false;
       }
     }
 
-    function saveFooterState() {
-      localStorage.setItem('petal_pearl_footer', JSON.stringify(footerData));
+    async function saveFooterState() {
       applyFooterData();
-      if (isAdmin) {
-        supabaseClient.from("site_settings").upsert(
+      showSaveStatus("loading", "Зберігаємо підвал сайту…", "Синхронізуємо зміни.");
+      try {
+        if (!isAdmin) throw new Error("Увійдіть як адміністратор, щоб зберегти зміни для всіх пристроїв.");
+        const { error } = await supabaseClient.from("site_settings").upsert(
           { id: "footer", data: footerData, updated_at: new Date().toISOString() },
           { onConflict: "id" }
-        ).then(({ error }) => {
-          if (error) {
-            console.error("Could not sync shared footer settings:", error.message);
-            alert("Зміни футера збережені лише в цьому браузері. Не вдалося синхронізувати: " + error.message);
-          }
-        });
+        );
+        if (error) throw error;
+        localStorage.setItem('petal_pearl_footer', JSON.stringify(footerData));
+        showSaveStatus("success", "Зміни збережено!", "Підвал сайту збережений у спільній базі.");
+        return true;
+      } catch (error) {
+        console.error("Could not sync shared footer settings:", error.message);
+        showSaveStatus("error", "Не вдалося зберегти зміни", error.message || "Спробуйте ще раз.", true);
+        return false;
       }
     }
 
@@ -1680,7 +1721,7 @@
       openModal('footerModal');
     }
 
-    function saveFooterForm(e) {
+    async function saveFooterForm(e) {
       e.preventDefault();
       if (!isAdmin) return;
       footerData.desc = sanitizeHTML(document.getElementById('editFooterDesc').value);
@@ -1693,8 +1734,8 @@
       footerData.tiktok = document.getElementById('editFooterTiktok').value;
       footerData.facebook = document.getElementById('editFooterFacebook').value;
 
-      saveFooterState();
-      closeModal('footerModal');
+      const saved = await saveFooterState();
+      if (saved) closeModal('footerModal');
     }
 
     /* РЕДАГУВАННЯ КАТЕГОРІЙ ТА СИСТЕМНИХ ВКЛАДОК */
@@ -1734,7 +1775,7 @@
       }
     }
 
-    function saveCategoriesForm(e) {
+    async function saveCategoriesForm(e) {
       e.preventDefault();
       if (!isAdmin) return;
       
@@ -1754,9 +1795,9 @@
         currentCategory = systemTabs.allProducts;
       }
 
-      saveCategoriesState();
+      const saved = await saveCategoriesState();
       filterProducts();
-      closeModal('categoriesModal');
+      if (saved) closeModal('categoriesModal');
     }
 
     /* Навігаційна панель та підвал */
@@ -1818,7 +1859,7 @@
       reader.readAsDataURL(file);
     }
 
-    function saveHeaderForm(e) {
+    async function saveHeaderForm(e) {
       e.preventDefault();
       if (!isAdmin) return;
       headerData.title = sanitizeHTML(document.getElementById('editHeaderTitle').value);
@@ -1830,8 +1871,8 @@
       headerData.heroTitle = sanitizeHTML(document.getElementById('editHeroTitle').value);
       headerData.heroDesc = sanitizeHTML(document.getElementById('editHeroDesc').value);
 
-      saveHeaderState();
-      closeModal('headerModal');
+      const saved = await saveHeaderState();
+      if (saved) closeModal('headerModal');
     }
 
     function toggleView(mode) {
@@ -2448,7 +2489,7 @@
 
       if (category && !categoriesList.includes(category)) {
         categoriesList.push(category);
-        saveCategoriesState();
+        await saveCategoriesState(true);
       }
 
       if (editId) {
@@ -2467,7 +2508,7 @@
       }
       filterProducts();
       closeModal('productModal');
-      alert("Товар успішно збережено у спільному каталозі. Він має бути доступний і на інших пристроях.");
+      // Success status is shown by saveProductsState after Supabase confirms the write.
 
     }
 
