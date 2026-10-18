@@ -1916,7 +1916,7 @@
           const path = 'music/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
           const { error } = await supabaseClient.storage.from('music-files').upload(path, file, { contentType: 'audio/mpeg', upsert: false });
           if (error) throw error;
-          const { data } = supabaseClient.storage.from('product-videos').getPublicUrl(path);
+          const { data } = supabaseClient.storage.from('music-files').getPublicUrl(path);
           if (!data?.publicUrl) throw new Error('Не вдалося отримати публічне посилання на файл.');
           nextUrl = data.publicUrl;
         }
