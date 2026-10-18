@@ -776,6 +776,14 @@
             <select id="prodCategory" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white" onchange="updateLivePreview()"></select>
             <p class="text-[10px] text-gray-500 mt-1">Оберіть категорію зі списку. Нові категорії додаються в «Редагувати категорії».</p>
           </div>
+          <div class="mt-3">
+            <label class="block text-xs font-bold text-vintage-green mb-1">Наявність товару</label>
+            <select id="prodAvailability" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+              <option value="in_stock">🟢 Є в наявності</option>
+              <option value="preorder">🟡 Передзамовлення (доставка 5–7 днів)</option>
+            </select>
+            <p class="text-[10px] text-gray-500 mt-1">Статус показуватиметься на картці товару та в описі.</p>
+          </div>
           <div>
             <label class="block text-xs font-bold text-vintage-green mb-1">Значок (Бейдж)</label>
             <select id="prodBadge" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
@@ -1668,7 +1676,10 @@
       activeMediaIndex = imgIndex >= 0 && imgIndex < p.images.length ? imgIndex : 0;
 
       document.getElementById('mediaModalTitle').innerHTML = `<span class="${p.nameStyle || ''}">${p.name}</span>`;
-      document.getElementById('mediaModalDescription').innerText = p.description || "Опис відсутній.";
+      const availabilityInfo = p.availability === 'preorder'
+        ? '<div class="flex flex-wrap gap-2 mt-3"><span class="inline-flex items-center gap-2 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 px-3 py-2 text-xs font-bold"><i class="fa-solid fa-clock"></i> Передзамовлення — доставка через 5–7 днів</span><span class="inline-flex items-center gap-2 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 px-3 py-2 text-xs font-bold"><i class="fa-solid fa-truck"></i> Доставка доступна</span></div>'
+        : '<div class="flex flex-wrap gap-2 mt-3"><span class="inline-flex items-center gap-2 rounded-lg bg-green-100 border border-green-300 text-green-800 px-3 py-2 text-xs font-bold"><i class="fa-solid fa-circle-check"></i> Є в наявності</span><span class="inline-flex items-center gap-2 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 px-3 py-2 text-xs font-bold"><i class="fa-solid fa-truck"></i> Доставка доступна</span></div>';
+      document.getElementById('mediaModalDescription').innerHTML = (p.description || "Опис відсутній.") + availabilityInfo;
       
       const videoEl = document.getElementById('mediaModalVideo');
       const btnVideo = document.getElementById('btnMediaVideo');
@@ -2094,6 +2105,14 @@
 
             <div class="p-4 flex-1 flex flex-col justify-between">
               <div>
+                <div class="flex flex-wrap gap-2 mt-2 mb-2">
+                  ${p.availability === 'preorder' ? `
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-100 text-amber-900 px-2.5 py-1 text-[10px] font-bold shadow-sm"><i class="fa-solid fa-clock"></i> Передзамовлення · 5–7 днів</span>
+                  ` : `
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-green-300 bg-green-100 text-green-800 px-2.5 py-1 text-[10px] font-bold shadow-sm"><i class="fa-solid fa-circle-check"></i> Є в наявності</span>
+                  `}
+                  <span class="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 text-sky-800 px-2.5 py-1 text-[10px] font-bold"><i class="fa-solid fa-truck"></i> Доставка доступна</span>
+                </div>
                 <span class="text-[10px] font-bold uppercase tracking-widest text-vintage-gold block">${p.category}</span>
                 <h3 class="font-serif font-bold text-vintage-green text-lg mt-1 leading-snug cursor-pointer hover:text-vintage-gold transition ${p.nameStyle || ''}" onclick="openMediaModal(${p.id}, 'photo', 0)">${p.name}</h3>
                 <p class="text-xs text-vintage-green/70 mt-1 line-clamp-2">${p.description || ''}</p>
@@ -2524,6 +2543,7 @@
       document.getElementById('prodVideo').value = "";
       document.getElementById('prodVideoFile').value = "";
       document.getElementById('prodBadge').value = "";
+      document.getElementById('prodAvailability').value = "in_stock";
       updateImagesFromInputs();
       showVideoPreview("");
       updateLivePreview();
@@ -2558,6 +2578,7 @@
       document.getElementById('prodVideo').value = p.video || "";
       document.getElementById('prodVideoFile').value = "";
       document.getElementById('prodBadge').value = p.badge || "";
+      document.getElementById('prodAvailability').value = p.availability || "in_stock";
       updateImagesFromInputs();
       showVideoPreview(p.video || "");
       updateLivePreview();
@@ -2587,6 +2608,7 @@
 
       const video = document.getElementById('prodVideo').value.trim();
       const badge = sanitizeHTML(document.getElementById('prodBadge').value);
+      const availability = document.getElementById('prodAvailability').value === 'preorder' ? 'preorder' : 'in_stock';
 
       if (category && !categoriesList.includes(category)) {
         categoriesList.push(category);
@@ -2595,7 +2617,7 @@
 
       if (editId) {
         const index = products.findIndex(p => p.id == editId);
-        if (index !== -1) products[index] = { id: parseInt(editId), name, nameStyle, priceStyle, description, category, wholesalePrice, retailPrice, multiplicity, images: imagesArr, video, badge };
+        if (index !== -1) products[index] = { id: parseInt(editId), name, nameStyle, priceStyle, description, category, wholesalePrice, retailPrice, multiplicity, images: imagesArr, video, badge, availability };
       } else {
         const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
         products.unshift({ id: newId, name, nameStyle, priceStyle, description, category, wholesalePrice, retailPrice, multiplicity, images: imagesArr, video, badge });
