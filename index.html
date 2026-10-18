@@ -2122,14 +2122,19 @@
                 <h3 class="font-serif font-bold text-vintage-green text-lg mt-1 leading-snug cursor-pointer hover:text-vintage-gold transition ${p.nameStyle || ''}" onclick="openMediaModal(${p.id}, 'photo', 0)">${p.name}</h3>
                 <p class="text-xs text-vintage-green/70 mt-1 line-clamp-2">${p.description || ''}</p>
               </div>
-              <div class="mt-4 pt-3 border-t border-vintage-border/60 flex items-center justify-between">
-                <div class="flex flex-col">
-                  <span class="text-[11px] font-bold text-amber-800">Опт ціна: <span class="font-serif text-lg font-extrabold text-vintage-green ${pStyle}">${p.wholesalePrice} грн</span></span>
-                  <span class="text-[11px] font-semibold text-gray-600">Роздріб ціна: <span class="font-serif text-base font-bold text-vintage-green ${pStyle}">${p.retailPrice} грн</span></span>
+              <div class="mt-4 pt-3 border-t border-vintage-border/60">
+                <div class="flex flex-col mb-3">
+                  <span class="text-[11px] font-bold text-amber-800">Опт ціна: <span class="font-serif text-lg font-extrabold text-vintage-green ${pStyle}">${p.wholesalePrice} грн/шт</span></span>
+                  <span class="text-[11px] font-semibold text-gray-600">Роздріб ціна: <span class="font-serif text-base font-bold text-vintage-green ${pStyle}">${p.retailPrice} грн/шт</span></span>
+                  <span class="text-[10px] text-vintage-green/70 mt-1">Роздріб — до 10 шт включно; опт — від 11 шт</span>
                 </div>
-                <button onclick="addToCart(${p.id})" class="bg-vintage-green text-vintage-cream p-2.5 rounded-xl hover:bg-vintage-greenLight transition shadow border border-vintage-gold" title="В кошик">
-                  <i class="fa-solid fa-cart-plus text-vintage-gold"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                  <label for="card-qty-${p.id}" class="text-xs font-semibold text-vintage-green whitespace-nowrap">Кількість:</label>
+                  <input type="number" id="card-qty-${p.id}" value="1" min="1" step="1" inputmode="numeric" aria-label="Кількість ${p.name}" class="w-20 border border-vintage-border rounded-lg text-center p-2 font-semibold text-sm bg-white focus:outline-none focus:border-vintage-gold">
+                  <button onclick="addCustomToCart(${p.id}, 'card-qty-${p.id}')" class="flex-1 bg-vintage-green text-vintage-cream px-3 py-2 rounded-xl hover:bg-vintage-greenLight transition shadow border border-vintage-gold text-sm font-semibold" title="Додати вибрану кількість у кошик">
+                    <i class="fa-solid fa-cart-plus text-vintage-gold mr-1"></i> У кошик
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2365,18 +2370,20 @@
     }
 
     function addToCart(id) {
-      const p = products.find(item => item.id === id);
-      cart[id] = (cart[id] || 0) + 1;
-      updateCartUI();
+      addCustomToCart(id, `card-qty-${id}`);
     }
 
-    function addCustomToCart(id) {
-      const qtyInput = document.getElementById(`qty-${id}`);
-      const qty = parseInt(qtyInput.value) || 0;
-      if (qty > 0) {
-        cart[id] = (cart[id] || 0) + qty;
-        updateCartUI();
+    function addCustomToCart(id, inputId = `qty-${id}`) {
+      const qtyInput = document.getElementById(inputId);
+      const qty = qtyInput ? Math.floor(Number(qtyInput.value)) : 0;
+      if (!Number.isFinite(qty) || qty < 1) {
+        alert("Вкажіть кількість від 1 штуки.");
+        if (qtyInput) { qtyInput.focus(); qtyInput.value = "1"; }
+        return;
       }
+      cart[id] = (cart[id] || 0) + qty;
+      updateCartUI();
+      document.querySelectorAll(`#card-qty-${id}, #qty-${id}`).forEach(input => { input.value = "1"; });
     }
 
     function removeFromCart(id) {
