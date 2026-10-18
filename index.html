@@ -1027,10 +1027,15 @@
       filterProducts();
       checkAdminStatus();
       syncProductsFromCloud();
+      syncSiteSettingsFromCloud();
       supabaseClient.auth.onAuthStateChange((_event, session) => {
         const signedIn = !!session?.user && session.user.email === "petalpearlflowers@gmail.com";
-        if (signedIn) sessionStorage.setItem("petal_pearl_admin", "true");
-        else sessionStorage.removeItem("petal_pearl_admin");
+        if (signedIn) {
+          sessionStorage.setItem("petal_pearl_admin", "true");
+          syncSiteSettingsFromCloud();
+        } else {
+          sessionStorage.removeItem("petal_pearl_admin");
+        }
         checkAdminStatus();
       });
 
@@ -1241,11 +1246,70 @@
     function saveHeaderState() {
       localStorage.setItem('petal_pearl_header', JSON.stringify(headerData));
       applyHeaderData();
+      if (isAdmin) {
+        supabaseClient.from("site_settings").upsert(
+          { id: "header", data: headerData, updated_at: new Date().toISOString() },
+          { onConflict: "id" }
+        ).then(({ error }) => {
+          if (error) {
+            console.error("Could not sync shared header settings:", error.message);
+            alert("Зміни банера збережені лише в цьому браузері. Не вдалося синхронізувати: " + error.message);
+          } else {
+            localStorage.setItem("petal_pearl_header", JSON.stringify(headerData));
+          }
+        });
+      }
     }
 
     function saveFooterState() {
       localStorage.setItem('petal_pearl_footer', JSON.stringify(footerData));
       applyFooterData();
+      if (isAdmin) {
+        supabaseClient.from("site_settings").upsert(
+          { id: "footer", data: footerData, updated_at: new Date().toISOString() },
+          { onConflict: "id" }
+        ).then(({ error }) => {
+          if (error) {
+            console.error("Could not sync shared footer settings:", error.message);
+            alert("Зміни футера збережені лише в цьому браузері. Не вдалося синхронізувати: " + error.message);
+          }
+        });
+      }
+    }
+
+    async function syncSiteSettingsFromCloud() {
+      try {
+        const { data, error } = await supabaseClient
+          .from("site_settings")
+          .select("id,data")
+          .in("id", ["header", "footer"]);
+        if (error) throw error;
+        const settings = Object.fromEntries((data || []).map(row => [row.id, row.data]));
+        if (settings.header && typeof settings.header === "object") {
+          headerData = { ...headerData, ...settings.header };
+          localStorage.setItem("petal_pearl_header", JSON.stringify(headerData));
+          applyHeaderData();
+        } else if (isAdmin) {
+          const { error: saveError } = await supabaseClient.from("site_settings").upsert(
+            { id: "header", data: headerData, updated_at: new Date().toISOString() },
+            { onConflict: "id" }
+          );
+          if (saveError) throw saveError;
+        }
+        if (settings.footer && typeof settings.footer === "object") {
+          footerData = { ...footerData, ...settings.footer };
+          localStorage.setItem("petal_pearl_footer", JSON.stringify(footerData));
+          applyFooterData();
+        } else if (isAdmin) {
+          const { error: saveError } = await supabaseClient.from("site_settings").upsert(
+            { id: "footer", data: footerData, updated_at: new Date().toISOString() },
+            { onConflict: "id" }
+          );
+          if (saveError) throw saveError;
+        }
+      } catch (error) {
+        console.error("Could not load shared site settings:", error.message);
+      }
     }
 
     function checkAdminStatus() {
