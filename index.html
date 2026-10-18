@@ -443,13 +443,13 @@
         <!-- Google Pay -->
         <div class="bg-white p-4 rounded-xl border border-vintage-border shadow-sm">
           <h4 class="font-bold text-sm text-vintage-green mb-2 flex items-center gap-2">
-            <i class="fa-brands fa-google text-blue-600"></i> Швидка оплата через Google Pay
+            <i class="fa-brands fa-google text-blue-600"></i> Онлайн-оплата через Monobank / Google Pay
           </h4>
-          <p class="text-xs text-gray-600 mb-3">Автоматичний розрахунок з вашої картки Google Pay на офіційний розрахунковий рахунок ФОП.</p>
+          <p class="text-xs text-gray-600 mb-3">Безпечна оплата на сторінці Monobank. Google Pay з’явиться, якщо його активовано для вашого еквайрингу.</p>
           
           <button onclick="triggerGooglePay()" class="gpay-btn-custom w-full shadow-md">
             <i class="fa-brands fa-google text-lg"></i>
-            <span>Pay з Google Pay</span>
+            <span>Оплатити онлайн</span>
           </button>
         </div>
 
@@ -2424,89 +2424,55 @@
       });
     }
 
-    function onGooglePayLoaded() {
-      if (window.google && google.payments) {
-        paymentsClient = new google.payments.api.PaymentsClient({ environment: 'TEST' });
-      }
-    }
-
-    function triggerGooglePay() {
-      const totalSum = calculateCartTotal();
-      if (totalSum <= 0) {
-        alert('Помилка: кошик порожній!');
+    // Payments are created by the Supabase Edge Function; never trust a browser-side "paid" message.
+    async function triggerGooglePay() {
+      if (!Object.keys(cart).length) {
+        alert('Ваш кошик порожній!');
         return;
       }
-
-      const paymentDataRequest = {
-        apiVersion: 2,
-        apiVersionMinor: 0,
-        allowedPaymentMethods: [{
-          type: 'CARD',
-          parameters: {
-            allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
-            allowedCardNetworks: ["MASTERCARD", "VISA"]
-          },
-          tokenizationSpecification: {
-            type: 'PAYMENT_GATEWAY',
-            parameters: {
-              'gateway': 'example',
-              'gatewayMerchantId': 'exampleGatewayMerchantId'
-            }
-          }
-        }],
-        merchantInfo: {
-          merchantId: '12345678901234567890',
-          merchantName: paymentBankInfo.recipient
-        },
-        transactionInfo: {
-          totalPriceStatus: 'FINAL',
-          totalPriceLabel: 'Загальна сума',
-          totalPrice: totalSum.toString(),
-          currencyCode: 'UAH',
-          countryCode: 'UA'
-        }
-      };
-
-      if (paymentsClient) {
-        paymentsClient.loadPaymentData(paymentDataRequest).then(function(paymentData) {
-          alert(`Оплату через Google Pay успішно авторизовано на суму ${totalSum} грн!\n\nКвитанція автоматично формується та надсилається в Telegram.`);
-          sendOrderToTelegramAutomatic();
-        }).catch(function(err) {
-          if (confirm(`Підтвердити оплату замовлення через Google Pay на суму ${totalSum} грн?\n\nОтримувач: ${paymentBankInfo.recipient}\nЄДРПОУ: ${paymentBankInfo.code}\nIBAN: ${paymentBankInfo.iban}`)) {
-            alert(`Оплату ${totalSum} грн зараховано. Надсилаємо квитанцію в Telegram...`);
-            sendOrderToTelegramAutomatic();
-          }
+      const customerName = prompt('Вкажіть ім’я та прізвище для замовлення:');
+      if (!customerName || !customerName.trim()) return;
+      const customerPhone = prompt('Вкажіть номер телефону для зв’язку:');
+      if (!customerPhone || !customerPhone.trim()) return;
+      const customerEmail = prompt('Email для квитанції (необов’язково):') || '';
+      const button = document.querySelector('#paymentModal button[onclick="triggerGooglePay()"]');
+      if (button) { button.disabled = true; button.style.opacity = '0.65'; }
+      try {
+        const response = await fetch(SUPABASE_URL + '/functions/v1/create-monobank-invoice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+          body: JSON.stringify({
+            customerName: customerName.trim(),
+            customerPhone: customerPhone.trim(),
+            customerEmail: customerEmail.trim(),
+            items: Object.keys(cart).map(id => ({ id: Number(id), quantity: Number(cart[id]) }))
+          })
         });
-      } else {
-        if (confirm(`Підтвердити проведення розрахунку Google Pay на суму ${totalSum} грн?\n\nРеквізити ФОП:\n- Отримувач: ${paymentBankInfo.recipient}\n- ЄДРПОУ: ${paymentBankInfo.code}\n- IBAN: ${paymentBankInfo.iban}`)) {
-          alert(`Оплату успішно проведено! Надсилаємо чек в Telegram...`);
-          sendOrderToTelegramAutomatic();
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.paymentUrl) {
+          throw new Error(result.error || 'Не вдалося створити рахунок Monobank. Онлайн-оплата поки недоступна.');
         }
+        // Keep the cart until the customer returns; only the signed bank webhook can confirm payment.
+        window.location.href = result.paymentUrl;
+      } catch (error) {
+        console.error('Monobank checkout error:', error);
+        alert(error.message || 'Помилка підключення до платіжної системи. Спробуйте пізніше.');
+        if (button) { button.disabled = false; button.style.opacity = ''; }
       }
     }
 
-    function sendOrderToTelegramAutomatic() {
-      let text = `💳 ОПЛАЧЕНО / КВИТАНЦІЯ (Petal &amp; Pearl):%0A`;
-      let total = 0;
-      Object.keys(cart).forEach(id => {
-        const p = products.find(item => item.id == id);
-        if (p) {
-          const qty = cart[id];
-          const priceToUse = qty >= p.multiplicity ? p.wholesalePrice : p.retailPrice;
-          const sum = priceToUse * qty;
-          total += sum;
-          text += `- ${p.name}: ${qty} шт (${sum} грн)%0A`;
-        }
+    function onGooglePayLoaded() {
+      // Google Pay is offered by the Monobank-hosted checkout when enabled for the merchant.
+      // No TEST gateway or browser-side payment confirmation is used here.
+    }
+
+    function copyIBAN() {
+      const ibanText = paymentBankInfo.iban;
+      navigator.clipboard.writeText(ibanText).then(() => {
+        alert(`IBAN скопійовано у буфер обміну:\n${ibanText}`);
+      }).catch(() => {
+        alert(`Реквізити для оплати:\nIBAN: ${paymentBankInfo.iban}\nЄДРПОУ: ${paymentBankInfo.code}\nОтримувач: ${paymentBankInfo.recipient}`);
       });
-      text += `%0A💰 Разом сплачено: ${total} грн%0A`;
-      text += `%0A🏦 Реквізити зарахування (ФОП):%0AОтримувач: ${paymentBankInfo.recipient}%0AКод: ${paymentBankInfo.code}%0AIBAN: ${paymentBankInfo.iban}%0AБанк: ${paymentBankInfo.bank}`;
-      
-      const targetPhone = "380955440167";
-      window.open(`https://t.me/+${targetPhone}?text=${text}`, '_blank');
-      
-      cart = {};
-      updateCartUI();
-      closeModal('paymentModal');
     }
 
     function renderProductCategoryOptions(selectedCategory = "") {
