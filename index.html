@@ -1960,9 +1960,9 @@
       if (!/\.mp3$/i.test(file.name) && file.type !== 'audio/mpeg') throw new Error('Підтримуються лише MP3-файли.');
       showSaveStatus('loading', 'Завантажуємо MP3…', 'Зачекайте, не закривайте вікно.');
       const path = 'music/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const { error } = await supabaseClient.storage.from('product-videos').upload(path, file, { contentType: 'audio/mpeg', upsert: true });
+      const { error } = await supabaseClient.storage.from('music-files').upload(path, file, { contentType: 'audio/mpeg', upsert: false });
       if (error) throw error;
-      const { data } = supabaseClient.storage.from('product-videos').getPublicUrl(path);
+      const { data } = supabaseClient.storage.from('music-files').getPublicUrl(path);
       if (!data?.publicUrl) throw new Error('Не вдалося отримати публічне посилання на MP3.');
       headerData.musicUrl = data.publicUrl;
       document.getElementById('editMusicUrl').value = data.publicUrl;
