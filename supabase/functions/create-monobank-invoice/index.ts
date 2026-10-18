@@ -39,8 +39,7 @@ Deno.serve(async (req: Request) => {
       const id = Number(item.id), qty = Number(item.quantity);
       const product: any = byId.get(id);
       if (!product || !Number.isSafeInteger(qty) || qty < 1 || qty > 10000) return json(400, { error: "A product or quantity is invalid." });
-      const multiplicity = Math.max(1, Number(product.multiplicity) || 1);
-      const unitPrice = qty >= multiplicity ? Number(product.wholesalePrice) : Number(product.retailPrice);
+      const unitPrice = qty > 10 ? Number(product.wholesalePrice) : Number(product.retailPrice);
       if (!Number.isFinite(unitPrice) || unitPrice <= 0) return json(400, { error: "A product has an invalid price." });
       const lineTotal = Math.round(unitPrice * 100) * qty;
       amount += lineTotal;
