@@ -1741,18 +1741,34 @@
       if (!isAdmin) return;
       const file = e.target.files[0];
       if (!file) return;
-      if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
-        alert('Будь ласка, оберіть файл у форматі JPEG (.jpg або .jpeg)!');
-        e.target.value = '';
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+        alert("Оберіть фото у форматі JPG, PNG або WebP.");
+        e.target.value = "";
         return;
       }
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const dataUrl = evt.target.result;
-        document.getElementById(`prodImg${index}`).value = dataUrl;
+      if (file.size > 10 * 1024 * 1024) {
+        alert("Розмір фото має бути не більше 10 МБ.");
+        e.target.value = "";
+        return;
+      }
+      (async () => {
+        const { data: authData } = await supabaseClient.auth.getSession();
+        if (!authData.session || authData.session.user.email !== "petalpearlflowers@gmail.com") {
+          alert("Увійдіть як адміністратор перед завантаженням фото.");
+          e.target.value = "";
+          return;
+        }
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = "products/" + Date.now() + "-" + index + "-" + safeName;
+        const { error } = await supabaseClient.storage.from("product-photos").upload(path, file, { contentType: file.type, upsert: true });
+        if (error) {
+          alert("Не вдалося завантажити фото: " + error.message);
+          return;
+        }
+        const { data } = supabaseClient.storage.from("product-photos").getPublicUrl(path);
+        document.getElementById("prodImg" + index).value = data.publicUrl;
         updateImagesFromInputs();
-      };
-      reader.readAsDataURL(file);
+      })().catch(err => alert("Помилка завантаження: " + err.message));
     }
 
     function updateImagesFromInputs() {
