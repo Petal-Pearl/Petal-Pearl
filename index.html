@@ -1528,8 +1528,13 @@
       }
     }
 
-    function checkAdminStatus() {
-      isAdmin = sessionStorage.getItem('petal_pearl_admin') === 'true';
+    async function checkAdminStatus() {
+      // Не доверяем sessionStorage: доступ к панели зависит от реальной сессии Supabase.
+      const { data, error } = await supabaseClient.auth.getSession();
+      const user = !error ? data?.session?.user : null;
+      isAdmin = !!user && user.email === "petalpearlflowers@gmail.com";
+      if (isAdmin) sessionStorage.setItem('petal_pearl_admin', 'true');
+      else sessionStorage.removeItem('petal_pearl_admin');
       document.getElementById('adminPanel').classList.toggle('hidden', !isAdmin);
       document.getElementById('adminBadge').classList.toggle('hidden', !isAdmin);
       document.getElementById('adminCatalogAddBtn').classList.toggle('hidden', !isAdmin);
