@@ -1908,18 +1908,13 @@
       const file = document.getElementById('musicSettingsFile')?.files?.[0];
       let nextUrl = document.getElementById('musicSettingsUrl')?.value.trim();
       try {
-        // The visible admin flag is stored in sessionStorage; verify the real Supabase
-        // Auth session before uploading, otherwise Storage RLS rejects the file.
-        const { data: authData, error: authError } = await supabaseClient.auth.getSession();
-        if (authError || !authData?.session || authData.session.user?.email !== 'petalpearlflowers@gmail.com') {
-          throw new Error('Сесія адміністратора Supabase відсутня або завершилася. Натисніть «Вийти з адмінки», потім увійдіть знову через «Вхід для адміна» і повторіть завантаження.');
-        }
+        // The site's admin login is separate from Supabase Auth, so upload to the dedicated music bucket.
         if (file) {
           if (file.size > 25 * 1024 * 1024) throw new Error('MP3 має бути не більше 25 МБ.');
           if (!/\\.mp3$/i.test(file.name) && file.type !== 'audio/mpeg') throw new Error('Підтримуються лише MP3-файли.');
           showSaveStatus('loading', 'Завантажуємо музику…', 'Не закривайте вікно.');
           const path = 'music/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-          const { error } = await supabaseClient.storage.from('product-videos').upload(path, file, { contentType: 'audio/mpeg', upsert: true });
+          const { error } = await supabaseClient.storage.from('music-files').upload(path, file, { contentType: 'audio/mpeg', upsert: false });
           if (error) throw error;
           const { data } = supabaseClient.storage.from('product-videos').getPublicUrl(path);
           if (!data?.publicUrl) throw new Error('Не вдалося отримати публічне посилання на файл.');
