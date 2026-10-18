@@ -733,8 +733,8 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-vintage-green mb-1">Категорія</label>
-            <input type="text" id="prodCategory" list="categoryOptionsList" required placeholder="Оберіть або введіть..." class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
-            <datalist id="categoryOptionsList"></datalist>
+            <select id="prodCategory" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white" onchange="updateLivePreview()"></select>
+            <p class="text-[10px] text-gray-500 mt-1">Оберіть категорію зі списку. Нові категорії додаються в «Редагувати категорії».</p>
           </div>
           <div>
             <label class="block text-xs font-bold text-vintage-green mb-1">Значок (Бейдж)</label>
@@ -2327,6 +2327,30 @@
       closeModal('paymentModal');
     }
 
+    function renderProductCategoryOptions(selectedCategory = "") {
+      const select = document.getElementById("prodCategory");
+      if (!select) return;
+      // Include categories configured in settings and any existing product category,
+      // so editing an older product never silently loses its category.
+      const available = [...new Set([
+        ...categoriesList,
+        ...products.map(product => product.category).filter(Boolean),
+        selectedCategory
+      ].map(value => String(value || "").trim()).filter(Boolean))];
+      select.innerHTML = available.map(category =>
+        `<option value="${category.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;")}">${category.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</option>`
+      ).join("");
+      if (selectedCategory && !available.includes(selectedCategory)) {
+        const option = document.createElement("option");
+        option.value = selectedCategory;
+        option.textContent = selectedCategory;
+        select.appendChild(option);
+      }
+      select.value = selectedCategory && available.includes(selectedCategory)
+        ? selectedCategory
+        : (categoriesList[0] || available[0] || "Троянди");
+    }
+
     function openAddProductModal() {
       if (!isAdmin) return alert('Доступ заборонено!');
       document.getElementById('productModalTitle').innerText = "Додати новий товар в асортимент";
@@ -2335,7 +2359,7 @@
       document.getElementById('prodNameStyle').value = "";
       document.getElementById('prodName').className = "w-full border border-vintage-border rounded-lg p-2 text-sm bg-white";
       document.getElementById('prodDesc').value = "";
-      document.getElementById('prodCategory').value = categoriesList[0] || "Троянди";
+      renderProductCategoryOptions(categoriesList[0] || "Троянди");
       document.getElementById('prodWholesalePrice').value = "";
       document.getElementById('prodRetailPrice').value = "";
       document.getElementById('prodMultiplicity').value = "1";
@@ -2368,7 +2392,7 @@
       document.getElementById('prodNameStyle').value = p.nameStyle || "";
       document.getElementById('prodName').className = `w-full border border-vintage-border rounded-lg p-2 text-sm bg-white ${p.nameStyle || ''}`;
       document.getElementById('prodDesc').value = p.description || "";
-      document.getElementById('prodCategory').value = p.category;
+      renderProductCategoryOptions(p.category || categoriesList[0] || "Троянди");
       document.getElementById('prodWholesalePrice').value = p.wholesalePrice;
       document.getElementById('prodRetailPrice').value = p.retailPrice;
       document.getElementById('prodMultiplicity').value = p.multiplicity;
