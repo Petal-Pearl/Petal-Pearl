@@ -1265,27 +1265,33 @@
     }
 
     async function saveProductsState() {
-      localStorage.setItem('petal_pearl_products', JSON.stringify(products));
-      renderCategoryNav();
-      if (!isAdmin) return;
+      if (!isAdmin) {
+        alert("Увійдіть як адміністратор, щоб зберегти товар у спільному каталозі.");
+        return false;
+      }
       try {
+        const { data: authData, error: authError } = await supabaseClient.auth.getSession();
+        if (authError) throw authError;
+        if (!authData.session || authData.session.user.email !== "petalpearlflowers@gmail.com") {
+          throw new Error("Сесія адміністратора завершилася. Увійдіть в адмін-панель повторно.");
+        }
         const rows = products.map(p => ({ id: Number(p.id), data: p, updated_at: new Date().toISOString() }));
-        if (rows.length) {
-          const { error: upsertError } = await supabaseClient.from("products").upsert(rows, { onConflict: "id" });
-          if (upsertError) throw upsertError;
+        if (!rows.length) throw new Error("Каталог порожній.");
+        const { data: savedRows, error: upsertError } = await supabaseClient
+          .from("products")
+          .upsert(rows, { onConflict: "id" })
+          .select("id");
+        if (upsertError) throw upsertError;
+        if (!savedRows || savedRows.length !== rows.length) {
+          throw new Error("База даних не підтвердила збереження всіх товарів.");
         }
-        // Keep deletions synchronized too, so removed products do not return on another device.
-        const { data: cloudRows, error: readError } = await supabaseClient.from("products").select("id");
-        if (readError) throw readError;
-        const currentIds = new Set(products.map(p => Number(p.id)));
-        const staleIds = (cloudRows || []).map(row => Number(row.id)).filter(id => !currentIds.has(id));
-        if (staleIds.length) {
-          const { error: deleteError } = await supabaseClient.from("products").delete().in("id", staleIds);
-          if (deleteError) throw deleteError;
-        }
+        localStorage.setItem("petal_pearl_products", JSON.stringify(products));
+        renderCategoryNav();
+        return true;
       } catch (error) {
-        console.error("Cloud catalog save failed:", error.message);
-        alert("Каталог збережений у цьому браузері, але не повністю синхронізований з хмарою: " + error.message);
+        console.error("Cloud catalog save failed:", error);
+        alert("Товар НЕ збережено у спільному каталозі. " + (error.message || "Невідома помилка") + "\nПеревірте вхід адміністратора та спробуйте ще раз.");
+        return false;
       }
     }
 
@@ -2416,9 +2422,10 @@
       openModal('productModal');
     }
 
-    function saveProductForm(e) {
+    async function saveProductForm(e) {
       e.preventDefault();
       if (!isAdmin) return alert('Доступ заборонено!');
+      const previousProducts = products.map(p => ({ ...p }));
       const editId = document.getElementById('editProductId').value;
       const name = sanitizeHTML(document.getElementById('prodName').value.trim());
       const nameStyle = sanitizeHTML(document.getElementById('prodNameStyle').value.trim());
@@ -2452,17 +2459,34 @@
         products.unshift({ id: newId, name, nameStyle, priceStyle, description, category, wholesalePrice, retailPrice, multiplicity, images: imagesArr, video, badge });
       }
 
-      saveProductsState();
+      const saved = await saveProductsState();
+      if (!saved) {
+        products = previousProducts;
+        filterProducts();
+        return;
+      }
       filterProducts();
       closeModal('productModal');
+      alert("Товар успішно збережено у спільному каталозі. Він має бути доступний і на інших пристроях.");
+
     }
 
-    function deleteProduct(id) {
+    async function deleteProduct(id) {
       if (!isAdmin) return alert('Доступ заборонено!');
-      if (confirm('Ви дійсно бажаєте видалити цей товар з асортименту?')) {
-        products = products.filter(p => p.id !== id);
-        saveProductsState();
+      if (!confirm('Ви дійсно бажаєте видалити цей товар з асортименту?')) return;
+      try {
+        const { data: authData, error: authError } = await supabaseClient.auth.getSession();
+        if (authError) throw authError;
+        if (!authData.session || authData.session.user.email !== "petalpearlflowers@gmail.com") {
+          throw new Error("Сесія адміністратора завершилася. Увійдіть повторно.");
+        }
+        const { error } = await supabaseClient.from("products").delete().eq("id", Number(id));
+        if (error) throw error;
+        products = products.filter(p => Number(p.id) !== Number(id));
+        localStorage.setItem("petal_pearl_products", JSON.stringify(products));
         filterProducts();
+      } catch (error) {
+        alert("Не вдалося видалити товар зі спільного каталогу: " + (error.message || "Невідома помилка"));
       }
     }
 
