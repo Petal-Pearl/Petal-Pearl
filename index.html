@@ -1032,11 +1032,12 @@
         const signedIn = !!session?.user && session.user.email === "petalpearlflowers@gmail.com";
         if (signedIn) {
           sessionStorage.setItem("petal_pearl_admin", "true");
+          checkAdminStatus();
           syncSiteSettingsFromCloud();
         } else {
           sessionStorage.removeItem("petal_pearl_admin");
+          checkAdminStatus();
         }
-        checkAdminStatus();
       });
 
       const audio = document.getElementById('bgAudio');
@@ -1207,18 +1208,28 @@
       if (document.getElementById('footerFacebookLink')) document.getElementById('footerFacebookLink').href = footerData.facebook || "https://www.facebook.com";
     }
 
-    function saveProductsState() {
+    async function saveProductsState() {
       localStorage.setItem('petal_pearl_products', JSON.stringify(products));
       renderCategoryNav();
-      if (isAdmin) {
+      if (!isAdmin) return;
+      try {
         const rows = products.map(p => ({ id: Number(p.id), data: p, updated_at: new Date().toISOString() }));
-        supabaseClient.from("products").upsert(rows, { onConflict: "id" })
-          .then(({ error }) => {
-            if (error) {
-              console.error("Cloud catalog save failed:", error.message);
-              alert("Товари збережені локально, але не синхронізовані з хмарою: " + error.message);
-            }
-          });
+        if (rows.length) {
+          const { error: upsertError } = await supabaseClient.from("products").upsert(rows, { onConflict: "id" });
+          if (upsertError) throw upsertError;
+        }
+        // Keep deletions synchronized too, so removed products do not return on another device.
+        const { data: cloudRows, error: readError } = await supabaseClient.from("products").select("id");
+        if (readError) throw readError;
+        const currentIds = new Set(products.map(p => Number(p.id)));
+        const staleIds = (cloudRows || []).map(row => Number(row.id)).filter(id => !currentIds.has(id));
+        if (staleIds.length) {
+          const { error: deleteError } = await supabaseClient.from("products").delete().in("id", staleIds);
+          if (deleteError) throw deleteError;
+        }
+      } catch (error) {
+        console.error("Cloud catalog save failed:", error.message);
+        alert("Каталог збережений у цьому браузері, але не повністю синхронізований з хмарою: " + error.message);
       }
     }
 
@@ -1241,6 +1252,21 @@
       localStorage.setItem('petal_pearl_categories', JSON.stringify(categoriesList));
       localStorage.setItem('petal_pearl_system_tabs', JSON.stringify(systemTabs));
       renderCategoryNav();
+      if (isAdmin) {
+        supabaseClient.from("site_settings").upsert(
+          {
+            id: "catalog_settings",
+            data: { categoriesList, systemTabs },
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: "id" }
+        ).then(({ error }) => {
+          if (error) {
+            console.error("Could not sync shared categories:", error.message);
+            alert("Категорії збережені локально, але не синхронізовані: " + error.message);
+          }
+        });
+      }
     }
 
     function saveHeaderState() {
@@ -1282,7 +1308,7 @@
         const { data, error } = await supabaseClient
           .from("site_settings")
           .select("id,data")
-          .in("id", ["header", "footer"]);
+          .in("id", ["header", "footer", "catalog_settings"]);
         if (error) throw error;
         const settings = Object.fromEntries((data || []).map(row => [row.id, row.data]));
         if (settings.header && typeof settings.header === "object") {
@@ -1303,6 +1329,30 @@
         } else if (isAdmin) {
           const { error: saveError } = await supabaseClient.from("site_settings").upsert(
             { id: "footer", data: footerData, updated_at: new Date().toISOString() },
+            { onConflict: "id" }
+          );
+          if (saveError) throw saveError;
+        }
+        if (settings.catalog_settings && typeof settings.catalog_settings === "object") {
+          const sharedCatalog = settings.catalog_settings;
+          if (Array.isArray(sharedCatalog.categoriesList)) {
+            categoriesList = sharedCatalog.categoriesList.map(c => sanitizeHTML(String(c)));
+            localStorage.setItem("petal_pearl_categories", JSON.stringify(categoriesList));
+          }
+          if (sharedCatalog.systemTabs && typeof sharedCatalog.systemTabs === "object") {
+            systemTabs.allProducts = sanitizeHTML(sharedCatalog.systemTabs.allProducts || "Усі товари");
+            systemTabs.sales = sanitizeHTML(sharedCatalog.systemTabs.sales || "Акції");
+            localStorage.setItem("petal_pearl_system_tabs", JSON.stringify(systemTabs));
+          }
+          renderCategoryNav();
+          filterProducts();
+        } else if (isAdmin) {
+          const { error: saveError } = await supabaseClient.from("site_settings").upsert(
+            {
+              id: "catalog_settings",
+              data: { categoriesList, systemTabs },
+              updated_at: new Date().toISOString()
+            },
             { onConflict: "id" }
           );
           if (saveError) throw saveError;
@@ -1335,6 +1385,7 @@
       closeModal("adminModal");
       checkAdminStatus();
       await syncProductsFromCloud();
+      await syncSiteSettingsFromCloud();
     }
 
     function openChangePasswordModal() {
