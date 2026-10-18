@@ -1908,6 +1908,12 @@
       const file = document.getElementById('musicSettingsFile')?.files?.[0];
       let nextUrl = document.getElementById('musicSettingsUrl')?.value.trim();
       try {
+        // The visible admin flag is stored in sessionStorage; verify the real Supabase
+        // Auth session before uploading, otherwise Storage RLS rejects the file.
+        const { data: authData, error: authError } = await supabaseClient.auth.getSession();
+        if (authError || !authData?.session || authData.session.user?.email !== 'petalpearlflowers@gmail.com') {
+          throw new Error('Сесія адміністратора Supabase відсутня або завершилася. Натисніть «Вийти з адмінки», потім увійдіть знову через «Вхід для адміна» і повторіть завантаження.');
+        }
         if (file) {
           if (file.size > 25 * 1024 * 1024) throw new Error('MP3 має бути не більше 25 МБ.');
           if (!/\\.mp3$/i.test(file.name) && file.type !== 'audio/mpeg') throw new Error('Підтримуються лише MP3-файли.');
@@ -1929,7 +1935,11 @@
         try { await audio.play(); musicUserDisabled = false; } catch (e) { updateMusicButtonUI(); }
         closeModal('musicSettingsModal');
       } catch (error) {
-        showSaveStatus('error', 'Не вдалося зберегти музику', error.message || 'Перевірте MP3 та права доступу.', true);
+        console.error('Petal & Pearl music upload failed:', error);
+        const message = error?.message || 'Перевірте MP3 та права доступу.';
+        showSaveStatus('error', 'Не вдалося зберегти музику', message.includes('row-level security') || message.includes('violates row-level security policy')
+          ? 'Supabase відхилив завантаження через права доступу. Вийдіть з адмінки, увійдіть повторно та спробуйте ще раз. Якщо помилка повториться, потрібно виправити Storage RLS policy.'
+          : message, true);
       }
     }
 
