@@ -203,6 +203,9 @@
         <button onclick="openEditHeaderModal()" class="bg-vintage-gold text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-vintage-goldHover transition shadow flex items-center gap-1">
           <i class="fa-solid fa-pen-to-square"></i> Редагувати шапку та банер
         </button>
+        <button onclick="openMusicSettingsModal()" class="bg-vintage-green text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-vintage-greenLight transition shadow flex items-center gap-1">
+          <i class="fa-solid fa-music text-vintage-gold"></i> Змінити фонову музику
+        </button>
         <button onclick="openEditFooterModal()" class="bg-amber-800 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-amber-900 transition shadow flex items-center gap-1">
           <i class="fa-solid fa-window-minimize text-amber-200"></i> Редагувати футер
         </button>
@@ -576,6 +579,25 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div id="musicSettingsModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-vintage-cream rounded-2xl w-full max-w-lg p-6 shadow-2xl relative border-2 border-vintage-gold">
+      <button onclick="closeModal('musicSettingsModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      <h3 class="font-serif text-2xl font-bold text-vintage-green mb-2"><i class="fa-solid fa-music text-vintage-gold mr-1"></i> Фонова музика</h3>
+      <p class="text-sm text-gray-600 mb-4">Завантажте MP3 зі свого комп’ютера або вставте пряме посилання на аудіофайл. Формат MP3, максимум 25 МБ.</p>
+      <div class="space-y-3">
+        <label class="block text-xs font-bold text-vintage-green">Вибрати MP3-файл</label>
+        <input type="file" id="musicSettingsFile" accept="audio/mpeg,.mp3" class="w-full text-sm border border-vintage-border rounded-lg p-2 bg-white">
+        <label class="block text-xs font-bold text-vintage-green">Або URL MP3-файлу</label>
+        <input type="url" id="musicSettingsUrl" placeholder="https://.../music.mp3" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+        <button type="button" onclick="previewMusicSettings()" class="px-4 py-2 text-xs rounded-lg border border-vintage-gold text-vintage-green"><i class="fa-solid fa-play mr-1"></i> Перевірити звук</button>
+      </div>
+      <div class="flex justify-end gap-3 pt-5">
+        <button type="button" onclick="closeModal('musicSettingsModal')" class="px-4 py-2 text-xs text-gray-600 bg-gray-100 rounded-lg">Скасувати</button>
+        <button type="button" onclick="saveMusicSettings()" class="px-5 py-2 text-xs font-bold text-white bg-vintage-green rounded-lg"><i class="fa-solid fa-floppy-disk mr-1"></i> Зберегти музику</button>
+      </div>
     </div>
   </div>
 
@@ -1857,6 +1879,58 @@
       
       document.getElementById("currentCategoryTitle").innerText = titleText;
       filterProducts();
+    }
+
+    function openMusicSettingsModal() {
+      if (!isAdmin) { alert('Спочатку увійдіть у режим адміністратора.'); return; }
+      document.getElementById('musicSettingsUrl').value = headerData.musicUrl || document.getElementById('bgAudioSource').src;
+      document.getElementById('musicSettingsFile').value = '';
+      openModal('musicSettingsModal');
+    }
+
+    async function previewMusicSettings() {
+      const file = document.getElementById('musicSettingsFile')?.files?.[0];
+      const url = document.getElementById('musicSettingsUrl')?.value.trim();
+      const audio = document.getElementById('bgAudio');
+      if (file) {
+        if (file.size > 25 * 1024 * 1024) { alert('MP3 має бути не більше 25 МБ.'); return; }
+        audio.src = URL.createObjectURL(file);
+      } else if (url) {
+        audio.src = url;
+      } else { alert('Виберіть MP3-файл або вставте URL.'); return; }
+      audio.load();
+      try { await audio.play(); musicUserDisabled = false; }
+      catch (error) { alert('Не вдалося відтворити аудіо. Перевірте файл або пряме посилання.'); console.error(error); }
+    }
+
+    async function saveMusicSettings() {
+      if (!isAdmin) { alert('Увійдіть як адміністратор.'); return; }
+      const file = document.getElementById('musicSettingsFile')?.files?.[0];
+      let nextUrl = document.getElementById('musicSettingsUrl')?.value.trim();
+      try {
+        if (file) {
+          if (file.size > 25 * 1024 * 1024) throw new Error('MP3 має бути не більше 25 МБ.');
+          if (!/\\.mp3$/i.test(file.name) && file.type !== 'audio/mpeg') throw new Error('Підтримуються лише MP3-файли.');
+          showSaveStatus('loading', 'Завантажуємо музику…', 'Не закривайте вікно.');
+          const path = 'music/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const { error } = await supabaseClient.storage.from('product-videos').upload(path, file, { contentType: 'audio/mpeg', upsert: true });
+          if (error) throw error;
+          const { data } = supabaseClient.storage.from('product-videos').getPublicUrl(path);
+          if (!data?.publicUrl) throw new Error('Не вдалося отримати публічне посилання на файл.');
+          nextUrl = data.publicUrl;
+        }
+        if (!nextUrl) throw new Error('Виберіть MP3 або введіть пряме посилання.');
+        headerData.musicUrl = nextUrl;
+        const saved = await saveHeaderState();
+        if (!saved) return;
+        const audio = document.getElementById('bgAudio');
+        audio.src = nextUrl;
+        audio.load();
+        try { await audio.play(); musicUserDisabled = false; } catch (e) { updateMusicButtonUI(); }
+        closeModal('musicSettingsModal');
+      } catch (error) {
+        showSaveStatus('error', 'Не вдалося зберегти музику', error.message || 'Перевірте MP3 та права доступу.', true);
+      }
     }
 
     async function previewMusicUpload() {
