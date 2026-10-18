@@ -12,6 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Google Pay API JS -->
   <script async src="https://pay.google.com/gp/p/js/pay.js" onload="onGooglePayLoaded()"></script>
 
@@ -480,9 +482,13 @@
         <p class="text-xs text-gray-600 mt-1">Введіть пароль адміністратора для внесення змін на сайті.</p>
       </div>
       <form onsubmit="handleAdminLogin(event)">
+        <div class="mb-3">
+          <label class="block text-xs font-bold text-vintage-green mb-1">Email адміністратора</label>
+          <input type="email" id="adminEmailInput" required autocomplete="username" value="petalpearlflowers@gmail.com" class="w-full border border-vintage-border rounded-lg p-2.5 text-sm focus:outline-none focus:border-vintage-gold bg-white">
+        </div>
         <div class="mb-4">
-          <label class="block text-xs font-bold text-vintage-green mb-1">Пароль доступу</label>
-          <input type="password" id="adminPasswordInput" required placeholder="••••••••" class="w-full border border-vintage-border rounded-lg p-2.5 text-sm text-center font-bold tracking-widest focus:outline-none focus:border-vintage-gold bg-white">
+          <label class="block text-xs font-bold text-vintage-green mb-1">Пароль Supabase</label>
+          <input type="password" id="adminPasswordInput" required autocomplete="current-password" placeholder="Пароль адміністратора" class="w-full border border-vintage-border rounded-lg p-2.5 text-sm text-center font-bold tracking-widest focus:outline-none focus:border-vintage-gold bg-white">
         </div>
         <button type="submit" class="w-full bg-vintage-green text-white font-bold py-2.5 rounded-xl hover:bg-vintage-greenLight transition text-sm shadow">Увійти в панель</button>
       </form>
@@ -999,6 +1005,9 @@
     let activeMediaProduct = null;
     let activeMediaIndex = 0;
     let isMusicPlaying = false;
+    const SUPABASE_URL = "https://hdlkpmsnsrmwftmjnusl.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_vWlCD38s9joTjXHuWYQslw__jpNGtwl";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     window.onload = () => {
       // Очищуємо старий битий кеш за потреби
@@ -1010,6 +1019,13 @@
       renderCategoryNav();
       filterProducts();
       checkAdminStatus();
+      syncProductsFromCloud();
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        const signedIn = !!session?.user && session.user.email === "petalpearlflowers@gmail.com";
+        if (signedIn) sessionStorage.setItem("petal_pearl_admin", "true");
+        else sessionStorage.removeItem("petal_pearl_admin");
+        checkAdminStatus();
+      });
 
       const audio = document.getElementById('bgAudio');
       audio.volume = 0.5;
@@ -1182,6 +1198,31 @@
     function saveProductsState() {
       localStorage.setItem('petal_pearl_products', JSON.stringify(products));
       renderCategoryNav();
+      if (isAdmin) {
+        const rows = products.map(p => ({ id: Number(p.id), data: p, updated_at: new Date().toISOString() }));
+        supabaseClient.from("products").upsert(rows, { onConflict: "id" })
+          .then(({ error }) => {
+            if (error) {
+              console.error("Cloud catalog save failed:", error.message);
+              alert("Товари збережені локально, але не синхронізовані з хмарою: " + error.message);
+            }
+          });
+      }
+    }
+
+    async function syncProductsFromCloud() {
+      try {
+        const { data, error } = await supabaseClient.from("products").select("id,data").order("id");
+        if (error) throw error;
+        if (data && data.length) {
+          products = data.map(row => row.data).filter(Boolean);
+          localStorage.setItem("petal_pearl_products", JSON.stringify(products));
+          renderCategoryNav();
+          filterProducts();
+        }
+      } catch (error) {
+        console.error("Could not load shared catalog:", error.message);
+      }
     }
 
     function saveCategoriesState() {
@@ -1209,20 +1250,20 @@
       filterProducts();
     }
 
-    function getCurrentAdminPassword() {
-      return localStorage.getItem('petal_pearl_admin_pass') || '26121980';
-    }
-
-    function handleAdminLogin(e) {
+    async function handleAdminLogin(e) {
       e.preventDefault();
-      const pass = document.getElementById('adminPasswordInput').value;
-      if (pass === getCurrentAdminPassword()) {
-        sessionStorage.setItem('petal_pearl_admin', 'true');
-        closeModal('adminModal');
-        checkAdminStatus();
-      } else {
-        alert('Невірний пароль!');
+      const email = document.getElementById("adminEmailInput").value.trim();
+      const password = document.getElementById("adminPasswordInput").value;
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error || !data.session || data.user.email !== "petalpearlflowers@gmail.com") {
+        if (data.session) await supabaseClient.auth.signOut();
+        alert("Не вдалося увійти. Перевір email і пароль Supabase та підтвердження email.");
+        return;
       }
+      sessionStorage.setItem("petal_pearl_admin", "true");
+      closeModal("adminModal");
+      checkAdminStatus();
+      await syncProductsFromCloud();
     }
 
     function openChangePasswordModal() {
@@ -1258,8 +1299,9 @@
       closeModal('changePasswordModal');
     }
 
-    function logoutAdmin() {
-      sessionStorage.removeItem('petal_pearl_admin');
+    async function logoutAdmin() {
+      await supabaseClient.auth.signOut();
+      sessionStorage.removeItem("petal_pearl_admin");
       checkAdminStatus();
     }
 
