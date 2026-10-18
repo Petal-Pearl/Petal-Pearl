@@ -2400,7 +2400,7 @@
         const p = products.find(item => item.id == id);
         if (p) {
           const qty = cart[id];
-          const priceToUse = qty >= p.multiplicity ? p.wholesalePrice : p.retailPrice;
+          const priceToUse = qty > 10 ? p.wholesalePrice : p.retailPrice;
           total += priceToUse * qty;
         }
       });
