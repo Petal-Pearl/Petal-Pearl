@@ -467,17 +467,27 @@
             <div><span class="text-gray-500 font-sans block">Назва банку:</span> <strong class="font-semibold select-all">АТ КБ "ПРИВАТБАНК"</strong></div>
           </div>
 
-          <div class="mt-3 flex flex-col sm:flex-row gap-2">
-            <button onclick="copyIBAN()" class="flex-1 bg-vintage-gold text-white font-bold py-2 px-3 rounded-lg text-xs hover:bg-vintage-goldHover transition flex items-center justify-center gap-1.5 shadow">
-              <i class="fa-regular fa-copy"></i>
-              <span>Скопіювати IBAN</span>
-            </button>
-            <a href="https://t.me/PetalAndPearlShopBot" target="_blank" rel="noopener noreferrer" class="flex-1 bg-sky-700 text-white font-bold py-2 px-3 rounded-lg text-xs hover:bg-sky-800 transition flex items-center justify-center gap-1.5 shadow">
+          <button id="createIbanOrderBtn" onclick="createIbanOrder()" class="mt-3 w-full bg-vintage-green text-vintage-cream font-bold py-3 px-3 rounded-lg text-sm hover:bg-vintage-greenLight transition flex items-center justify-center gap-2 shadow border border-vintage-gold">
+            <i class="fa-solid fa-file-circle-check text-vintage-gold"></i>
+            <span>Створити замовлення для переказу</span>
+          </button>
+          <div id="ibanOrderResult" class="hidden mt-3 p-3 rounded-lg border border-vintage-gold bg-white text-sm text-vintage-green" aria-live="polite">
+            <p class="font-bold">Номер вашого замовлення:</p>
+            <p id="ibanOrderReference" class="font-mono text-lg font-bold text-amber-900 select-all"></p>
+            <p class="mt-1">Сума до переказу: <strong id="ibanOrderAmount"></strong></p>
+            <p class="mt-2 text-xs text-gray-600">Вкажіть цей номер у повідомленні разом із квитанцією в Telegram. Замовлення залишатиметься «очікує оплати», доки надходження не буде перевірено вручну.</p>
+            <a href="https://t.me/PetalAndPearlShopBot" target="_blank" rel="noopener noreferrer" class="mt-3 w-full bg-sky-700 text-white font-bold py-2.5 px-3 rounded-lg text-xs hover:bg-sky-800 transition flex items-center justify-center gap-1.5 shadow">
               <i class="fa-brands fa-telegram"></i>
               <span>Надіслати квитанцію в Telegram</span>
             </a>
           </div>
-          <p class="mt-3 text-xs text-gray-600 leading-relaxed">Після переказу надішліть фото або PDF квитанції боту в Telegram. У повідомленні вкажіть номер замовлення, ім’я та суму. Оплату буде підтверджено вручну після перевірки надходження коштів.</p>
+          <div class="mt-3">
+            <button onclick="copyIBAN()" class="w-full bg-vintage-gold text-white font-bold py-2 px-3 rounded-lg text-xs hover:bg-vintage-goldHover transition flex items-center justify-center gap-1.5 shadow">
+              <i class="fa-regular fa-copy"></i>
+              <span>Скопіювати IBAN</span>
+            </button>
+          </div>
+          <p class="mt-3 text-xs text-gray-600 leading-relaxed">Спочатку створіть замовлення, потім переказуйте точну суму за реквізитами вище. Після переказу надішліть фото або PDF квитанції боту в Telegram і вкажіть номер замовлення. Відправлення товару — лише після ручної перевірки надходження коштів.</p>
         </div>
       </div>
     </div>
@@ -2450,6 +2460,43 @@
       }).catch(() => {
         alert(`Реквізити для оплати:\nIBAN: ${paymentBankInfo.iban}\nЄДРПОУ: ${paymentBankInfo.code}\nОтримувач: ${paymentBankInfo.recipient}`);
       });
+    }
+
+    async function createIbanOrder() {
+      if (!Object.keys(cart).length) return alert('Ваш кошик порожній!');
+      const customerName = prompt('Вкажіть ім’я та прізвище для замовлення:');
+      if (!customerName || !customerName.trim()) return;
+      const customerPhone = prompt('Вкажіть номер телефону для зв’язку:');
+      if (!customerPhone || !customerPhone.trim()) return;
+      const customerEmail = prompt('Email для зв’язку (необов’язково):') || '';
+      const button = document.getElementById('createIbanOrderBtn');
+      const resultPanel = document.getElementById('ibanOrderResult');
+      if (button) { button.disabled = true; button.style.opacity = '0.65'; }
+      try {
+        const response = await fetch(SUPABASE_URL + '/functions/v1/create-iban-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+          body: JSON.stringify({
+            customerName: customerName.trim(),
+            customerPhone: customerPhone.trim(),
+            customerEmail: customerEmail.trim(),
+            items: Object.keys(cart).map(id => ({ id: Number(id), quantity: Number(cart[id]) }))
+          })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.reference || !Number.isFinite(Number(data.amount))) {
+          throw new Error(data.error || 'Не вдалося створити замовлення для банківського переказу.');
+        }
+        document.getElementById('ibanOrderReference').textContent = data.reference;
+        document.getElementById('ibanOrderAmount').textContent = Number(data.amount).toLocaleString('uk-UA') + ' грн';
+        resultPanel.classList.remove('hidden');
+        resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (button) button.querySelector('span').textContent = 'Замовлення створено';
+      } catch (error) {
+        console.error('IBAN order creation failed:', error);
+        alert(error.message || 'Не вдалося створити замовлення. Спробуйте ще раз.');
+        if (button) { button.disabled = false; button.style.opacity = ''; }
+      }
     }
 
     // Payments are created by the Supabase Edge Function; never trust a browser-side "paid" message.
