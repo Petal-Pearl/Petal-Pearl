@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Petal & Pearl — Квіткова Крамниця</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Google Pay API JS -->
+  <script async src="https://pay.google.com/gp/p/js/pay.js" onload="onGooglePayLoaded()"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vintage: {
+              cream: '#f5efe4',
+              card: '#efe6d8',
+              border: '#c8b496',
+              green: '#2c3327',
+              greenLight: '#3f4939',
+              gold: '#be9b5a',
+              goldHover: '#a38142'
+            }
+          },
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'serif'],
+            sans: ['Montserrat', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .topbar-vintage-bg {
+      background-color: #242b20;
+      background-image: linear-gradient(rgba(30, 36, 26, 0.8), rgba(30, 36, 26, 0.85)), url('https://lh3.googleusercontent.com/d/1O86S18aQmClpPLugZOLatvOQ-oDmfrCQ');
+      background-position: center;
+      background-size: cover;
+      border-bottom: 2px solid #be9b5a;
+    }
+
+    .catalog-vintage-bg {
+      background-color: #f5efe4;
+      background-image: url('https://lh3.googleusercontent.com/d/1O86S18aQmClpPLugZOLatvOQ-oDmfrCQ');
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    .hero-banner-vintage {
+      background-image: linear-gradient(rgba(245, 239, 228, 0.25), rgba(245, 239, 228, 0.25)), url('https://lh3.googleusercontent.com/d/1O86S18aQmClpPLugZOLatvOQ-oDmfrCQ');
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      box-shadow: inset 0 0 100px rgba(60, 40, 20, 0.2);
+    }
+
+    .vintage-card-frame {
+      background: rgba(252, 249, 242, 0.92);
+      backdrop-filter: blur(4px);
+      border: 1px solid #c8b496;
+      box-shadow: 0 4px 15px rgba(60, 48, 30, 0.08);
+      transition: all 0.3s ease;
+    }
+    .vintage-card-frame:hover {
+      border-color: #be9b5a;
+      box-shadow: 0 8px 25px rgba(60, 48, 30, 0.18);
+      transform: translateY(-3px);
+    }
+
+    .table-view th, .table-view td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #d8c8b0;
+    }
+
+    .gpay-btn-custom {
+      background-color: #000;
+      color: #fff;
+      border-radius: 8px;
+      padding: 12px 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 600;
+      transition: background-color 0.2s;
+      cursor: pointer;
+    }
+    .gpay-btn-custom:hover {
+      background-color: #222;
+    }
+  </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col catalog-vintage-bg">
+
+  <!-- Аудіоплеєр для фонової музики по колу -->
+  <audio id="bgAudio" loop preload="auto">
+    <source src="https://docs.google.com/uc?export=download&id=1Ajjz5InHDx8UdTqcUTtLKmEpSprRyin6" type="audio/mpeg">
+    Ваш браузер не підтримує аудіо елемент.
+  </audio>
+
+  <!-- Шапка сайту -->
+  <header class="bg-white/90 backdrop-blur-md border-b border-vintage-border sticky top-0 z-40 shadow-sm">
+    <div class="topbar-vintage-bg text-vintage-cream text-xs py-2.5 px-4 shadow-inner">
+      <div class="max-w-7xl mx-auto flex justify-between items-center flex-wrap gap-2">
+        <div class="flex items-center space-x-5">
+          <a id="sitePhoneHeaderLink" href="tel:+380955440167" class="hover:text-vintage-gold font-medium flex items-center gap-2 transition tracking-wide">
+            <i class="fa-solid fa-phone text-vintage-gold"></i>
+            <span id="sitePhoneDisplay">+38 (095) 544-01-67</span>
+          </a>
+          <span class="hidden sm:inline border-l border-vintage-gold/40 pl-4 text-emerald-100/80">
+            <i class="fa-solid fa-clock text-vintage-gold mr-1.5"></i> <span id="siteHoursDisplay">Пн-Нд: 08:00 - 20:00</span>
+          </span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <!-- Кнопка керування музикою -->
+          <button onclick="toggleBackgroundMusic()" id="musicToggleBtn" class="bg-vintage-gold/20 hover:bg-vintage-gold/40 text-vintage-cream border border-vintage-gold/60 px-2.5 py-1 rounded-md text-[11px] font-semibold transition flex items-center gap-1.5 shadow-sm" title="Увімкнути/Вимкнути музику">
+            <i id="musicIcon" class="fa-solid fa-volume-xmark text-vintage-gold"></i>
+            <span id="musicText">Музика: Вимк</span>
+          </button>
+
+          <span id="adminBadge" class="hidden bg-vintage-gold text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow">
+            <i class="fa-solid fa-user-shield mr-1"></i> Режим адміна
+          </span>
+          <button onclick="toggleAdminModal()" id="adminLoginBtn" class="hover:text-vintage-gold text-xs underline font-medium transition flex items-center gap-1">
+            <i class="fa-solid fa-lock text-vintage-gold"></i>
+            <span id="adminBtnText">Вхід для адміна</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+      <a href="#" class="flex items-center space-x-4 group">
+        <div class="relative w-16 h-16 rounded-full overflow-hidden border-2 border-vintage-gold p-0.5 bg-vintage-cream flex-shrink-0 shadow-md">
+          <img id="siteLogoImg" src="https://lh3.googleusercontent.com/d/1mWStnjc8PAIUXY8zk5QaeDMIuIEJG9X5" alt="Petal & Pearl" class="w-full h-full object-cover rounded-full" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full rounded-full bg-vintage-green text-vintage-gold flex items-center justify-center font-serif font-bold text-xl\'>P&P</div>';">
+        </div>
+        <div>
+          <span id="siteTitleDisplay" class="font-serif text-3xl font-bold tracking-wide text-vintage-green block leading-none group-hover:text-vintage-gold transition">Petal &amp; Pearl</span>
+          <span id="siteSubtitleDisplay" class="text-xs font-semibold tracking-widest text-vintage-gold uppercase block mt-1">КВІТКОВА КРАМНИЦЯ</span>
+        </div>
+      </a>
+
+      <div class="flex-1 max-w-md mx-2 sm:mx-6">
+        <div class="relative">
+          <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Пошук сорту троянд, хризантем, декорів..." class="w-full pl-10 pr-4 py-2.5 bg-vintage-cream/90 border border-vintage-border rounded-full focus:outline-none focus:border-vintage-gold text-sm text-vintage-green placeholder-gray-500 shadow-inner">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-vintage-gold text-sm"></i>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <div class="flex border border-vintage-border rounded-lg overflow-hidden bg-vintage-cream p-0.5">
+          <button onclick="toggleView('grid')" id="btnViewGrid" class="p-2 text-sm bg-vintage-green text-white rounded transition shadow" title="Вигляд сіткою"><i class="fa-solid fa-border-all"></i></button>
+          <button onclick="toggleView('table')" id="btnViewTable" class="p-2 text-sm text-vintage-green hover:bg-vintage-card rounded transition" title="Вигляд таблицею (Опт)"><i class="fa-solid fa-list"></i></button>
+        </div>
+
+        <button onclick="openModal('cartModal')" class="relative bg-vintage-green text-vintage-cream px-4 py-2.5 rounded-lg font-medium hover:bg-vintage-greenLight transition flex items-center space-x-2 border border-vintage-gold shadow-md">
+          <i class="fa-solid fa-basket-shopping text-vintage-gold"></i>
+          <span class="hidden sm:inline">Кошик</span>
+          <span id="cartBadge" class="bg-vintage-gold text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">0</span>
+        </button>
+      </div>
+    </div>
+
+    <nav class="topbar-vintage-bg text-vintage-cream border-t border-vintage-gold/50 overflow-x-auto">
+      <div class="max-w-7xl mx-auto px-4 flex whitespace-nowrap space-x-2 py-2 text-xs font-medium" id="categoryNav"></div>
+    </nav>
+  </header>
+
+  <!-- Панель адміністратора -->
+  <div id="adminPanel" class="hidden bg-amber-50/95 backdrop-blur-sm border-b border-amber-300 py-3 px-4 shadow">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center space-x-2 text-amber-900 text-sm font-semibold">
+        <i class="fa-solid fa-sliders text-vintage-gold"></i>
+        <span>Панель керування магазином (Режим Адміністратора)</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="openCategoriesModal()" class="bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-amber-700 transition shadow flex items-center gap-1">
+          <i class="fa-solid fa-list-check text-amber-200"></i> Редагувати категорії та вкладки
+        </button>
+        <button onclick="openEditHeaderModal()" class="bg-vintage-gold text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-vintage-goldHover transition shadow flex items-center gap-1">
+          <i class="fa-solid fa-pen-to-square"></i> Редагувати шапку та банер
+        </button>
+        <button onclick="openEditFooterModal()" class="bg-amber-800 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-amber-900 transition shadow flex items-center gap-1">
+          <i class="fa-solid fa-window-minimize text-amber-200"></i> Редагувати футер
+        </button>
+        <button onclick="openAddProductModal()" class="bg-vintage-green text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-vintage-greenLight transition shadow flex items-center gap-1">
+          <i class="fa-solid fa-plus text-vintage-gold"></i> Додати товар
+        </button>
+        <button onclick="openChangePasswordModal()" class="bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-amber-800 transition shadow flex items-center gap-1">
+          <i class="fa-solid fa-key text-amber-200"></i> Змінити пароль
+        </button>
+        <button onclick="resetToDefaults()" class="bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded hover:bg-gray-300 transition"><i class="fa-solid fa-rotate-left mr-1"></i> Скинути все</button>
+        <button onclick="logoutAdmin()" class="bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-red-800 transition shadow">Вийти з адмінки</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Головний банер -->
+  <section class="hero-banner-vintage border-b-2 border-vintage-gold py-16 px-4 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+      
+      <div class="max-w-2xl bg-amber-50/80 backdrop-blur-md p-6 md:p-8 rounded-2xl border-2 border-vintage-gold/70 shadow-2xl">
+        <span id="heroBadgeDisplay" class="text-vintage-gold uppercase font-bold tracking-widest text-xs block mb-2 font-sans flex items-center gap-2">
+          <i class="fa-solid fa-feather-pointed"></i> Повний асортимент гуртового склада
+        </span>
+        <h1 id="heroTitleDisplay" class="font-serif text-3xl md:text-5xl font-bold text-vintage-green leading-tight">Пелюстки краси та перлини вишуканості</h1>
+        <p id="heroDescDisplay" class="mt-3 text-vintage-green/95 text-sm md:text-base leading-relaxed font-serif italic font-medium">
+          Ласкаво просимо до вишуканої квіткової крамниці «Petal &amp; Pearl». У нас зібрано повний асортимент зрізаних троянд, хризантем, еустом, горшкових рослин, декору та витонченої фурнітури в старовинному класичному стилі.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-4">
+          <a id="heroPhoneBtn" href="tel:+380955440167" class="bg-vintage-green text-vintage-cream font-semibold px-6 py-3 rounded-xl hover:bg-vintage-greenLight transition shadow-lg text-sm flex items-center gap-2 border border-vintage-gold">
+            <i class="fa-solid fa-phone text-vintage-gold"></i>
+            <span id="heroPhoneBtnText">Замовити: +38 (095) 544-01-67</span>
+          </a>
+          <button onclick="setCategory('Троянди')" class="bg-vintage-cream/90 border-2 border-vintage-gold text-vintage-green font-bold px-6 py-3 rounded-xl hover:bg-vintage-gold hover:text-white transition shadow text-sm">
+            🌹 Усі Троянди
+          </button>
+        </div>
+      </div>
+
+      <div class="w-52 h-52 md:w-72 md:h-72 rounded-full border-4 border-vintage-gold p-1.5 bg-vintage-cream/80 shadow-2xl flex-shrink-0 overflow-hidden relative group backdrop-blur-sm">
+        <img id="heroLogoImg" src="https://lh3.googleusercontent.com/d/1mWStnjc8PAIUXY8zk5QaeDMIuIEJG9X5" alt="Petal & Pearl Logo" class="w-full h-full object-cover rounded-full group-hover:scale-105 transition duration-500" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full rounded-full bg-vintage-green text-vintage-gold flex items-center justify-center font-serif font-bold text-5xl border-2 border-vintage-gold\'>P&P</div>';">
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Каталог товарів -->
+  <main class="max-w-7xl mx-auto px-4 flex-1 w-full my-8">
+    <div class="bg-amber-50/80 backdrop-blur-md p-6 rounded-2xl border border-vintage-border shadow-sm mb-8">
+      <div class="flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h2 id="currentCategoryTitle" class="font-serif text-3xl md:text-4xl font-bold text-vintage-green tracking-wide">Повний асортимент товарів</h2>
+          <p id="productCount" class="text-xs text-vintage-gold font-semibold uppercase tracking-widest mt-1">Завантаження позицій...</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <button id="adminCatalogAddBtn" onclick="openAddProductModal()" class="hidden bg-vintage-green text-vintage-cream font-bold px-4 py-2.5 rounded-xl text-xs hover:bg-vintage-greenLight transition shadow border border-vintage-gold flex items-center gap-2">
+            <i class="fa-solid fa-plus text-vintage-gold"></i>
+            <span>+ Додати позицію товару</span>
+          </button>
+
+          <div class="flex items-center space-x-2 text-sm">
+            <span class="text-vintage-green font-medium">Сортування:</span>
+            <select id="sortSelect" onchange="filterProducts()" class="bg-vintage-cream border border-vintage-border rounded-xl p-2.5 text-xs font-semibold text-vintage-green focus:outline-none focus:border-vintage-gold shadow-sm">
+              <option value="default">За замовчуванням</option>
+              <option value="wholesale-asc">Спочатку дешевші (Опт)</option>
+              <option value="wholesale-desc">Спочатку дорожчі (Опт)</option>
+              <option value="retail-asc">Спочатку дешевші (Роздріб)</option>
+              <option value="retail-desc">Спочатку дорожчі (Роздріб)</option>
+              <option value="name">За назвою</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="gridView" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+
+    <div id="tableView" class="hidden bg-white/90 backdrop-blur-sm rounded-2xl border border-vintage-border shadow-md overflow-x-auto">
+      <table class="w-full text-left border-collapse table-view">
+        <thead class="topbar-vintage-bg text-vintage-cream text-xs uppercase font-semibold">
+          <tr>
+            <th class="py-3.5 px-4">Фото</th>
+            <th class="py-3.5 px-4">Найменування</th>
+            <th class="py-3.5 px-4">Категорія</th>
+            <th class="py-3.5 px-4">Кратність</th>
+            <th class="py-3.5 px-4">Ціна Опт / шт</th>
+            <th class="py-3.5 px-4">Ціна Роздріб / шт</th>
+            <th class="py-3.5 px-4 text-center">Кількість</th>
+            <th class="py-3.5 px-4 text-right">Дія</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Підвал сайту -->
+  <footer class="topbar-vintage-bg text-vintage-cream text-sm mt-auto border-t-4 border-vintage-gold shadow-2xl">
+    <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div>
+        <div class="flex items-center space-x-3 mb-4">
+          <img id="footerLogoImg" src="https://lh3.googleusercontent.com/d/1mWStnjc8PAIUXY8zk5QaeDMIuIEJG9X5" alt="Logo" class="w-11 h-11 rounded-full border-2 border-vintage-gold object-cover shadow">
+          <div>
+            <span class="font-serif text-xl font-bold tracking-wide block">Petal &amp; Pearl</span>
+            <span class="text-[10px] text-vintage-gold uppercase tracking-wider block">Квіткова крамниця</span>
+          </div>
+        </div>
+        <p id="footerDescDisplay" class="text-xs text-gray-300 leading-relaxed mb-4">Прямі гуртові та роздрібні поставки квітів з Голландського аукціону та місцевих тепличних господарств.</p>
+        <p id="footerCopyrightDisplay" class="text-xs text-vintage-gold font-serif">© 2026 Petal &amp; Pearl. Всі права захищені.</p>
+      </div>
+
+      <div>
+        <h3 class="font-serif text-lg text-vintage-gold font-bold mb-3">Розділи каталогу</h3>
+        <ul id="footerCategoriesList" class="space-y-2 text-xs"></ul>
+      </div>
+
+      <div>
+        <h3 class="font-serif text-lg text-vintage-gold font-bold mb-3">Покупцям &amp; Адмін</h3>
+        <ul class="space-y-2 text-xs">
+          <li><a href="#" class="hover:text-vintage-gold transition">Оплата та доставка</a></li>
+          <li><a href="#" class="hover:text-vintage-gold transition">Умови гуртових замовлень</a></li>
+          <li><a href="#" onclick="toggleAdminModal()" class="hover:text-vintage-gold transition">Панель адміна</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-serif text-lg text-vintage-gold font-bold mb-3">Контакти</h3>
+        <p class="text-xs mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-phone text-vintage-gold"></i> 
+          <a id="footerPhoneLink" href="tel:+380955440167" class="hover:underline font-bold text-white">+38 (095) 544-01-67</a>
+        </p>
+        <p class="text-xs mb-2 flex items-center gap-2 text-gray-300">
+          <i class="fa-solid fa-envelope text-vintage-gold"></i> 
+          <span id="footerEmailDisplay">petal.pearl.flowers@gmail.com</span>
+        </p>
+        <p class="text-xs mb-4 flex items-center gap-2 text-gray-300">
+          <i class="fa-solid fa-location-dot text-vintage-gold"></i> 
+          <span id="footerAddressDisplay">Доставка по Україні / Гуртовий склад</span>
+        </p>
+        <div class="flex space-x-3 text-lg items-center">
+          <a id="footerTelegramLink" href="https://t.me/+380955440167" target="_blank" class="text-gray-300 hover:text-sky-400 transition" title="Telegram">
+            <i class="fa-brands fa-telegram"></i>
+          </a>
+          <a id="footerViberLink" href="viber://chat?number=%2B380955440167" target="_blank" class="text-gray-300 hover:text-purple-400 transition" title="Viber">
+            <i class="fa-brands fa-viber"></i>
+          </a>
+          <a id="footerInstagramLink" href="https://www.instagram.com/petal_pearl_flowers" target="_blank" class="text-gray-300 hover:text-pink-400 transition" title="Instagram">
+            <i class="fa-brands fa-instagram"></i>
+          </a>
+          <a id="footerTiktokLink" href="https://www.tiktok.com/@petal_pearl_flowers" target="_blank" class="text-gray-300 hover:text-cyan-400 transition" title="TikTok">
+            <i class="fa-brands fa-tiktok"></i>
+          </a>
+          <a id="footerFacebookLink" href="https://www.facebook.com/petal_pearl_flowers" target="_blank" class="text-gray-300 hover:text-blue-500 transition" title="Facebook">
+            <i class="fa-brands fa-facebook"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- МОДАЛЬНІ ВІКНА -->
+
+  <!-- Детальний перегляд товару (Галерея, Опис та Відео) -->
+  <div id="mediaModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-vintage-cream rounded-2xl w-full max-w-3xl p-5 shadow-2xl relative border-2 border-vintage-gold flex flex-col max-h-[95vh] overflow-y-auto">
+      <button onclick="closeMediaModal()" class="absolute top-3 right-3 bg-vintage-gold text-white rounded-full w-9 h-9 flex items-center justify-center text-xl shadow-lg hover:bg-vintage-goldHover transition z-20">&times;</button>
+      
+      <div class="flex flex-wrap justify-between items-center border-b border-vintage-border pb-3 mb-3 gap-2">
+        <h3 id="mediaModalTitle" class="font-serif text-xl font-bold text-vintage-green"></h3>
+        
+        <!-- Перемикач Фото / Відео -->
+        <div id="mediaToggleBtns" class="flex border border-vintage-border rounded-lg overflow-hidden bg-white p-0.5 shadow-sm">
+          <button id="btnMediaPhoto" onclick="switchMediaMode('photo')" class="px-3.5 py-1.5 text-xs font-bold rounded transition bg-vintage-green text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-image text-vintage-gold"></i> Фото галерея
+          </button>
+          <button id="btnMediaVideo" onclick="switchMediaMode('video')" class="px-3.5 py-1.5 text-xs font-bold rounded transition text-vintage-green hover:bg-vintage-card flex items-center gap-1.5">
+            <i class="fa-solid fa-video text-vintage-gold"></i> Відео
+          </button>
+        </div>
+      </div>
+
+      <!-- Контейнер для головного зображення або відео -->
+      <div class="relative bg-black/90 rounded-xl overflow-hidden shadow-inner flex items-center justify-center min-h-[260px] max-h-[48vh]">
+        <img id="mediaModalImg" src="" alt="Enlarged Photo" class="w-full h-full object-contain max-h-[48vh]">
+        <video id="mediaModalVideo" controls class="hidden w-full h-full object-contain max-h-[48vh]"></video>
+      </div>
+
+      <!-- Мініатюри галереї фото у модальному вікні -->
+      <div id="mediaThumbnailsContainer" class="flex items-center justify-center gap-2 pt-3 overflow-x-auto"></div>
+
+      <!-- Блок опису товару в модалці -->
+      <div class="mt-4 bg-white/90 p-4 rounded-xl border border-vintage-border shadow-sm">
+        <h4 class="font-serif font-bold text-vintage-green text-sm mb-1 flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-info text-vintage-gold"></i> Опис та характеристики товару:
+        </h4>
+        <div id="mediaModalDescription" class="text-xs text-vintage-green/90 leading-relaxed font-sans"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Кошик -->
+  <div id="cartModal" class="fixed inset-0 bg-black/60 z-50 hidden flex justify-end">
+    <div class="bg-vintage-cream w-full max-w-md h-full flex flex-col p-6 shadow-2xl border-l-2 border-vintage-gold">
+      <div class="flex justify-between items-center border-b border-vintage-border pb-4 mb-4">
+        <h3 class="font-serif text-2xl font-bold text-vintage-green flex items-center gap-2"><i class="fa-solid fa-basket-shopping text-vintage-gold"></i> <span>Ваш кошик</span></h3>
+        <button onclick="closeModal('cartModal')" class="text-vintage-green/60 hover:text-vintage-green text-2xl">&times;</button>
+      </div>
+      <div id="cartItems" class="flex-1 overflow-y-auto space-y-4 pr-1"></div>
+      <div class="border-t border-vintage-border pt-4 mt-4">
+        <div class="flex justify-between items-center mb-4">
+          <span class="font-bold text-vintage-green">Загальна сума:</span>
+          <span id="cartTotal" class="font-serif text-3xl font-extrabold text-vintage-green">0 грн</span>
+        </div>
+        <button onclick="checkout()" class="w-full bg-vintage-green text-vintage-cream font-bold py-3.5 rounded-xl hover:bg-vintage-greenLight transition flex items-center justify-center space-x-2 border border-vintage-gold shadow-md">
+          <i class="fa-solid fa-credit-card text-vintage-gold"></i>
+          <span>Оформити замовлення та оплатити</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Оплата та Google Pay за реквізитами IBAN -->
+  <div id="paymentModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-vintage-cream rounded-2xl w-full max-w-lg p-6 shadow-2xl relative border-2 border-vintage-gold max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('paymentModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 bg-white text-vintage-gold rounded-full flex items-center justify-center mx-auto text-xl mb-2 border border-vintage-gold shadow">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+        <h3 class="font-serif text-2xl font-bold text-vintage-green">Вибір способу оплати</h3>
+        <p class="text-xs text-gray-600 mt-1">Загальна сума замовлення: <span id="paymentTotalAmount" class="font-bold text-vintage-green text-base">0 грн</span></p>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Google Pay -->
+        <div class="bg-white p-4 rounded-xl border border-vintage-border shadow-sm">
+          <h4 class="font-bold text-sm text-vintage-green mb-2 flex items-center gap-2">
+            <i class="fa-brands fa-google text-blue-600"></i> Швидка оплата через Google Pay
+          </h4>
+          <p class="text-xs text-gray-600 mb-3">Автоматичний розрахунок з вашої картки Google Pay на офіційний розрахунковий рахунок ФОП.</p>
+          
+          <button onclick="triggerGooglePay()" class="gpay-btn-custom w-full shadow-md">
+            <i class="fa-brands fa-google text-lg"></i>
+            <span>Pay з Google Pay</span>
+          </button>
+        </div>
+
+        <!-- Оплата IBAN -->
+        <div class="bg-amber-50/90 p-4 rounded-xl border border-vintage-gold shadow-sm">
+          <h4 class="font-bold text-sm text-vintage-green mb-2 flex items-center justify-between">
+            <span><i class="fa-solid fa-building-columns text-vintage-gold mr-1"></i> Оплата за реквізитами (IBAN)</span>
+            <span class="text-[10px] bg-vintage-gold text-white px-2 py-0.5 rounded font-bold">ПриватБанк</span>
+          </h4>
+          
+          <div class="space-y-2 text-xs text-vintage-green bg-white p-3 rounded-lg border border-vintage-border/70 font-mono">
+            <div><span class="text-gray-500 font-sans block">Отримувач:</span> <strong class="font-semibold select-all">Шумаєв О. М. ФОП</strong></div>
+            <div><span class="text-gray-500 font-sans block">Код отримувача (ЄДРПОУ/ІПН):</span> <strong class="font-semibold select-all" id="ibanCodeText">2958015014</strong></div>
+            <div><span class="text-gray-500 font-sans block">Рахунок (IBAN):</span> <strong class="font-semibold select-all text-amber-900 break-all" id="ibanAccountText">UA073052990000026004045206307</strong></div>
+            <div><span class="text-gray-500 font-sans block">Назва банку:</span> <strong class="font-semibold select-all">АТ КБ "ПРИВАТБАНК"</strong></div>
+          </div>
+
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button onclick="copyIBAN()" class="flex-1 bg-vintage-gold text-white font-bold py-2 px-3 rounded-lg text-xs hover:bg-vintage-goldHover transition flex items-center justify-center gap-1.5 shadow">
+              <i class="fa-regular fa-copy"></i>
+              <span>Скопіювати IBAN</span>
+            </button>
+            <a href="https://next.privat24.ua/" target="_blank" class="bg-emerald-700 text-white font-bold py-2 px-3 rounded-lg text-xs hover:bg-emerald-800 transition flex items-center justify-center gap-1 shadow">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              <span>Приват24</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="text-center pt-2 text-xs text-gray-500">
+          <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Після успішної оплати квитанція надішлеться автоматично.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Вхід адміна -->
+  <div id="adminModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-vintage-cream rounded-2xl w-full max-w-sm p-6 shadow-2xl relative border-2 border-vintage-gold">
+      <button onclick="closeModal('adminModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      <div class="text-center mb-4">
+        <div class="w-12 h-12 bg-white text-vintage-gold rounded-full flex items-center justify-center mx-auto text-xl mb-2 border border-vintage-gold shadow"><i class="fa-solid fa-key"></i></div>
+        <h3 class="font-serif text-2xl font-bold text-vintage-green">Вхід для редагування</h3>
+        <p class="text-xs text-gray-600 mt-1">Введіть пароль адміністратора для внесення змін на сайті.</p>
+      </div>
+      <form onsubmit="handleAdminLogin(event)">
+        <div class="mb-4">
+          <label class="block text-xs font-bold text-vintage-green mb-1">Пароль доступу</label>
+          <input type="password" id="adminPasswordInput" required placeholder="••••••••" class="w-full border border-vintage-border rounded-lg p-2.5 text-sm text-center font-bold tracking-widest focus:outline-none focus:border-vintage-gold bg-white">
+        </div>
+        <button type="submit" class="w-full bg-vintage-green text-white font-bold py-2.5 rounded-xl hover:bg-vintage-greenLight transition text-sm shadow">Увійти в панель</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Модальне вікно зміни пароля адміна -->
+  <div id="changePasswordModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-vintage-cream rounded-2xl w-full max-w-sm p-6 shadow-2xl relative border-2 border-vintage-gold">
+      <button onclick="closeModal('changePasswordModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      <div class="text-center mb-4">
+        <div class="w-12 h-12 bg-white text-vintage-gold rounded-full flex items-center justify-center mx-auto text-xl mb-2 border border-vintage-gold shadow"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3 class="font-serif text-2xl font-bold text-vintage-green">Зміна пароля адміна</h3>
+        <p class="text-xs text-gray-600 mt-1">Введіть поточний та новий пароль для доступу до сайту.</p>
+      </div>
+      <form onsubmit="handleChangePassword(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Поточний пароль</label>
+          <input type="password" id="oldPasswordInput" required placeholder="••••••••" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Новий пароль</label>
+          <input type="password" id="newPasswordInput" required placeholder="••••••••" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Підтвердіть новий пароль</label>
+          <input type="password" id="confirmPasswordInput" required placeholder="••••••••" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+        </div>
+        <button type="submit" class="w-full bg-vintage-green text-white font-bold py-2.5 rounded-xl hover:bg-vintage-greenLight transition text-sm shadow mt-2">Зберегти новий пароль</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Редагування категорій та вкладок -->
+  <div id="categoriesModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-vintage-cream rounded-2xl w-full max-w-lg p-6 shadow-2xl relative border-2 border-vintage-gold max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('categoriesModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      <h3 class="font-serif text-2xl font-bold text-vintage-green mb-1"><i class="fa-solid fa-list-check text-vintage-gold mr-1"></i> Налаштування вкладок та категорій</h3>
+      <p class="text-xs text-gray-600 mb-4">Змінюйте назви головних системних кнопок («Усі товари», «Акції») та категорій каталогу.</p>
+      
+      <form onsubmit="saveCategoriesForm(event)" class="space-y-4">
+        
+        <!-- Системні вкладки -->
+        <div class="bg-white/80 p-3 rounded-xl border border-vintage-border space-y-3">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-vintage-gold">Головні системні вкладки</h4>
+          <div>
+            <label class="block text-xs font-semibold text-vintage-green mb-1">Назва вкладки "Усі товари"</label>
+            <input type="text" id="tabAllProducts" required class="w-full border border-vintage-border rounded-lg p-2 text-xs font-semibold bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-vintage-green mb-1">Назва вкладки "Акції"</label>
+            <input type="text" id="tabSales" required class="w-full border border-vintage-border rounded-lg p-2 text-xs font-semibold bg-white">
+          </div>
+        </div>
+
+        <!-- Звичайні категорії -->
+        <div class="space-y-2">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-vintage-gold">Категорії каталогу</h4>
+          <div id="categoriesEditorList" class="space-y-2.5 max-h-56 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="pt-2 border-t border-vintage-border">
+          <label class="block text-xs font-bold text-vintage-green mb-1">+ Додати нову категорію</label>
+          <div class="flex gap-2">
+            <input type="text" id="newCategoryInput" placeholder="наприклад, Букети нареченої" class="flex-1 border border-vintage-border rounded-lg p-2 text-sm bg-white">
+            <button type="button" onclick="addNewCategoryFromInput()" class="bg-amber-600 text-white font-bold px-3 py-2 rounded-lg text-xs hover:bg-amber-700 transition">Додати</button>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-4 border-t border-vintage-border">
+          <button type="button" onclick="closeModal('categoriesModal')" class="px-4 py-2 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Скасувати</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-vintage-green rounded-lg hover:bg-vintage-greenLight shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-check text-vintage-gold"></i> Зберегти вкладки та категорії
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Редагування шапки та банера -->
+  <div id="headerModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-vintage-cream rounded-2xl w-full max-w-lg p-6 shadow-2xl relative border-2 border-vintage-gold max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('headerModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      <h3 class="font-serif text-2xl font-bold text-vintage-green mb-4"><i class="fa-solid fa-heading text-vintage-gold mr-1"></i> Редагування шапки та банера</h3>
+      <form onsubmit="saveHeaderForm(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Назва магазину (Бренд)</label>
+          <input type="text" id="editHeaderTitle" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Підзаголовок бренду</label>
+          <input type="text" id="editHeaderSubtitle" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1">Телефон</label>
+            <input type="text" id="editHeaderPhone" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1">Режим роботи</label>
+            <input type="text" id="editHeaderHours" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Логотип магазину (JPEG файл або URL)</label>
+          <div class="space-y-2 bg-white/80 p-3 rounded-lg border border-vintage-border">
+            <input type="file" id="logoFile" accept="image/jpeg, image/jpg" onchange="handleLogoUpload(event)" class="w-full text-xs border border-vintage-border rounded-lg p-1.5 bg-white cursor-pointer">
+            <input type="text" id="editHeaderLogo" placeholder="https://..." class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+        </div>
+
+        <hr class="border-vintage-border">
+
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Верхній бейдж банера</label>
+          <input type="text" id="editHeroBadge" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Головний заголовок банера</label>
+          <input type="text" id="editHeroTitle" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Опис на банері</label>
+          <textarea id="editHeroDesc" rows="3" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-3">
+          <button type="button" onclick="closeModal('headerModal')" class="px-4 py-2 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Скасувати</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-vintage-green rounded-lg hover:bg-vintage-greenLight shadow">Зберегти шапку</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Редагування футера сайту -->
+  <div id="footerModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-vintage-cream rounded-2xl w-full max-w-lg p-6 shadow-2xl relative border-2 border-vintage-gold max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('footerModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      <h3 class="font-serif text-2xl font-bold text-vintage-green mb-4"><i class="fa-solid fa-window-minimize text-vintage-gold mr-1"></i> Редагування футера сайту</h3>
+      <form onsubmit="saveFooterForm(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Опис бренду у підвалі</label>
+          <textarea id="editFooterDesc" rows="3" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Текст авторського права (Copyright)</label>
+          <input type="text" id="editFooterCopyright" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1">Email адреса</label>
+            <input type="email" id="editFooterEmail" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1">Адреса / Склад</label>
+            <input type="text" id="editFooterAddress" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+        </div>
+
+        <hr class="border-vintage-border">
+        <h4 class="font-bold text-xs uppercase tracking-wider text-vintage-gold">Соціальні мережі та месенджери</h4>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1"><i class="fa-brands fa-telegram text-sky-600 mr-1"></i> Telegram</label>
+            <input type="text" id="editFooterTelegram" placeholder="https://t.me/..." required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1"><i class="fa-brands fa-viber text-purple-600 mr-1"></i> Viber</label>
+            <input type="text" id="editFooterViber" placeholder="viber://chat?number=..." required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1"><i class="fa-brands fa-instagram text-pink-600 mr-1"></i> Instagram</label>
+            <input type="text" id="editFooterInstagram" placeholder="https://instagram.com/..." required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1"><i class="fa-brands fa-tiktok text-cyan-600 mr-1"></i> TikTok</label>
+            <input type="text" id="editFooterTiktok" placeholder="https://tiktok.com/@..." required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1"><i class="fa-brands fa-facebook text-blue-600 mr-1"></i> Facebook</label>
+            <input type="text" id="editFooterFacebook" placeholder="https://facebook.com/..." required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-3">
+          <button type="button" onclick="closeModal('footerModal')" class="px-4 py-2 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Скасувати</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-vintage-green rounded-lg hover:bg-vintage-greenLight shadow">Зберегти футер</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Додавання/редагування товару (з форматуванням назви та цін у стилі Word) -->
+  <div id="productModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-vintage-cream rounded-2xl w-full max-w-xl p-6 shadow-2xl relative border-2 border-vintage-gold max-h-[95vh] overflow-y-auto">
+      <button onclick="closeModal('productModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      <h3 id="productModalTitle" class="font-serif text-2xl font-bold text-vintage-green mb-4">Додати новий товар в асортимент</h3>
+      
+      <form onsubmit="saveProductForm(event)" class="space-y-4">
+        <input type="hidden" id="editProductId">
+        
+        <!-- Назва товару та панель форматування Word -->
+        <div>
+          <div class="flex flex-wrap justify-between items-center mb-1 gap-2">
+            <label class="block text-xs font-bold text-vintage-green">Назва товару / сорту</label>
+            <div class="flex items-center gap-1 bg-vintage-card px-2 py-0.5 rounded border border-vintage-border shadow-sm">
+              <button type="button" onclick="formatProdField('name', 'bold')" class="px-1.5 py-0.5 text-xs font-bold hover:bg-vintage-gold hover:text-white rounded" title="Жирний"><b>B</b></button>
+              <button type="button" onclick="formatProdField('name', 'italic')" class="px-1.5 py-0.5 text-xs italic hover:bg-vintage-gold hover:text-white rounded" title="Курсив"><i>I</i></button>
+              <button type="button" onclick="formatProdField('name', 'underline')" class="px-1.5 py-0.5 text-xs underline hover:bg-vintage-gold hover:text-white rounded" title="Підкреслений"><u>U</u></button>
+              <span class="text-gray-300">|</span>
+              <select onchange="formatProdField('name', 'size', this.value)" class="text-[11px] bg-white border border-vintage-border rounded px-1 py-0.5">
+                <option value="">Розмір</option>
+                <option value="text-sm">Малий</option>
+                <option value="text-base">Звичайний</option>
+                <option value="text-lg">Великий</option>
+                <option value="text-xl">Дуже великий</option>
+              </select>
+              <select onchange="formatProdField('name', 'color', this.value)" class="text-[11px] bg-white border border-vintage-border rounded px-1 py-0.5">
+                <option value="">Колір</option>
+                <option value="text-vintage-green">Темно-зелений</option>
+                <option value="text-vintage-gold">Золотий</option>
+                <option value="text-red-700">Червоний</option>
+                <option value="text-amber-950">Коричневий</option>
+              </select>
+            </div>
+          </div>
+          <input type="text" id="prodName" oninput="updateLivePreview()" required placeholder="наприклад, Троянда Red Naomi 60см" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          <input type="hidden" id="prodNameStyle" value="">
+        </div>
+
+        <!-- Віконце для опису товару -->
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1"><i class="fa-solid fa-align-left text-vintage-gold mr-1"></i> Детальний опис товару</label>
+          <textarea id="prodDesc" rows="3" placeholder="Введіть опис сорту, висоту келиха, стійкість у вазі..." class="w-full border border-vintage-border rounded-lg p-2.5 text-xs bg-white text-vintage-green"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1">Категорія</label>
+            <input type="text" id="prodCategory" list="categoryOptionsList" required placeholder="Оберіть або введіть..." class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+            <datalist id="categoryOptionsList"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1">Значок (Бейдж)</label>
+            <select id="prodBadge" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+              <option value="">Без значка</option>
+              <option value="TOP">TOP</option>
+              <option value="SALE">SALE</option>
+              <option value="NEW">NEW</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-amber-800 mb-1">Ціна Опт (грн)</label>
+            <input type="number" id="prodWholesalePrice" oninput="updateLivePreview()" required min="1" placeholder="38" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1">Ціна Роздріб (грн)</label>
+            <input type="number" id="prodRetailPrice" oninput="updateLivePreview()" required min="1" placeholder="50" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-vintage-green mb-1">Кратність (шт)</label>
+            <input type="number" id="prodMultiplicity" required min="1" value="1" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+          </div>
+        </div>
+
+        <!-- Панель форматування цін у стилі Word -->
+        <div class="bg-amber-50/90 p-3 rounded-xl border border-vintage-border space-y-2">
+          <div class="flex flex-wrap justify-between items-center gap-2">
+            <span class="text-xs font-bold text-vintage-green"><i class="fa-solid fa-font text-vintage-gold mr-1"></i> Форматування шрифту цін:</span>
+            <div class="flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-vintage-border shadow-sm">
+              <button type="button" onclick="formatProdField('price', 'bold')" class="px-1.5 py-0.5 text-xs font-bold hover:bg-vintage-gold hover:text-white rounded" title="Жирний"><b>B</b></button>
+              <button type="button" onclick="formatProdField('price', 'italic')" class="px-1.5 py-0.5 text-xs italic hover:bg-vintage-gold hover:text-white rounded" title="Курсив"><i>I</i></button>
+              <button type="button" onclick="formatProdField('price', 'underline')" class="px-1.5 py-0.5 text-xs underline hover:bg-vintage-gold hover:text-white rounded" title="Підкреслений"><u>U</u></button>
+              <span class="text-gray-300">|</span>
+              <select onchange="formatProdField('price', 'size', this.value)" class="text-[11px] bg-white border border-vintage-border rounded px-1 py-0.5">
+                <option value="">Розмір ціни</option>
+                <option value="text-sm">Малий</option>
+                <option value="text-base">Звичайний</option>
+                <option value="text-lg">Великий</option>
+                <option value="text-xl">Дуже великий</option>
+              </select>
+              <select onchange="formatProdField('price', 'color', this.value)" class="text-[11px] bg-white border border-vintage-border rounded px-1 py-0.5">
+                <option value="">Колір ціни</option>
+                <option value="text-vintage-green">Темно-зелений</option>
+                <option value="text-vintage-gold">Золотий</option>
+                <option value="text-red-700">Червоний</option>
+                <option value="text-amber-950">Коричневий</option>
+              </select>
+            </div>
+          </div>
+          <input type="hidden" id="prodPriceStyle" value="">
+        </div>
+
+        <!-- ОДРАЗУ ВИДНО ЗМІНИ (Живий попередній перегляд картки товару) -->
+        <div class="bg-white p-4 rounded-xl border-2 border-vintage-gold/70 shadow-inner">
+          <span class="text-[11px] font-bold text-vintage-gold uppercase tracking-wider block mb-2"><i class="fa-solid fa-eye mr-1"></i> Миттєвий попередній перегляд (Live Preview):</span>
+          <div class="bg-vintage-cream/80 p-3 rounded-lg border border-vintage-border flex justify-between items-center">
+            <div>
+              <span id="previewName" class="font-serif text-base font-bold text-vintage-green block">Назва товару</span>
+              <div class="flex gap-3 mt-1">
+                <span class="text-xs text-amber-800">Опт: <span id="previewWholesale" class="font-serif font-bold text-vintage-green">38 грн</span></span>
+                <span class="text-xs text-gray-700">Роздріб: <span id="previewRetail" class="font-serif font-bold text-vintage-green">50 грн</span></span>
+              </div>
+            </div>
+            <div class="bg-vintage-green text-vintage-cream px-3 py-1.5 rounded-lg text-xs font-bold border border-vintage-gold">У кошик</div>
+          </div>
+        </div>
+        
+        <!-- Галерея фото товару (до 5 штук) -->
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1"><i class="fa-solid fa-images text-vintage-gold mr-1"></i> Галерея фото товару (до 5 штук)</label>
+          <div class="space-y-3 bg-white/80 p-3 rounded-lg border border-vintage-border">
+            
+            <!-- Слот 1 -->
+            <div class="space-y-1">
+              <span class="text-[11px] font-bold text-vintage-green">1. Головне фото (файл JPEG або URL):</span>
+              <div class="flex gap-2">
+                <input type="file" id="prodImgFile0" accept="image/jpeg, image/jpg" onchange="handleMultiImageUpload(event, 0)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
+                <input type="text" id="prodImg0" oninput="updateImagesFromInputs()" placeholder="https://..." class="w-1/2 border border-vintage-border rounded p-1 text-xs bg-white">
+              </div>
+            </div>
+
+            <!-- Слот 2 -->
+            <div class="space-y-1">
+              <span class="text-[11px] font-semibold text-gray-700">2. Додаткове фото №2:</span>
+              <div class="flex gap-2">
+                <input type="file" id="prodImgFile1" accept="image/jpeg, image/jpg" onchange="handleMultiImageUpload(event, 1)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
+                <input type="text" id="prodImg1" oninput="updateImagesFromInputs()" placeholder="https://..." class="w-1/2 border border-vintage-border rounded p-1 text-xs bg-white">
+              </div>
+            </div>
+
+            <!-- Слот 3 -->
+            <div class="space-y-1">
+              <span class="text-[11px] font-semibold text-gray-700">3. Додаткове фото №3:</span>
+              <div class="flex gap-2">
+                <input type="file" id="prodImgFile2" accept="image/jpeg, image/jpg" onchange="handleMultiImageUpload(event, 2)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
+                <input type="text" id="prodImg2" oninput="updateImagesFromInputs()" placeholder="https://..." class="w-1/2 border border-vintage-border rounded p-1 text-xs bg-white">
+              </div>
+            </div>
+
+            <!-- Слот 4 -->
+            <div class="space-y-1">
+              <span class="text-[11px] font-semibold text-gray-700">4. Додаткове фото №4:</span>
+              <div class="flex gap-2">
+                <input type="file" id="prodImgFile3" accept="image/jpeg, image/jpg" onchange="handleMultiImageUpload(event, 3)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
+                <input type="text" id="prodImg3" oninput="updateImagesFromInputs()" placeholder="https://..." class="w-1/2 border border-vintage-border rounded p-1 text-xs bg-white">
+              </div>
+            </div>
+
+            <!-- Слот 5 -->
+            <div class="space-y-1">
+              <span class="text-[11px] font-semibold text-gray-700">5. Додаткове фото №5:</span>
+              <div class="flex gap-2">
+                <input type="file" id="prodImgFile4" accept="image/jpeg, image/jpg" onchange="handleMultiImageUpload(event, 4)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
+                <input type="text" id="prodImg4" oninput="updateImagesFromInputs()" placeholder="https://..." class="w-1/2 border border-vintage-border rounded p-1 text-xs bg-white">
+              </div>
+            </div>
+
+            <!-- Попередній перегляд -->
+            <div class="pt-2 border-t border-vintage-border/60">
+              <span class="text-[11px] font-bold text-vintage-green block mb-1">Попередній перегляд галереї:</span>
+              <div id="adminImagesPreviewList" class="flex flex-wrap gap-2"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Відео товару -->
+        <div>
+          <label class="block text-xs font-bold text-vintage-green mb-1">Відео огляд товару (MP4 або URL)</label>
+          <div class="space-y-2 bg-white/80 p-3 rounded-lg border border-vintage-border">
+            <div>
+              <span class="text-[11px] font-semibold text-vintage-green block mb-1"><i class="fa-solid fa-video text-vintage-gold mr-1"></i>Завантажити відео файл (до 15МБ):</span>
+              <input type="file" id="prodVideoFile" accept="video/mp4, video/webm" onchange="handleVideoUpload(event)" class="w-full text-xs border border-vintage-border rounded-lg p-1.5 bg-white cursor-pointer">
+            </div>
+            <div class="text-center text-[10px] text-gray-400 font-bold tracking-widest uppercase">— АБО —</div>
+            <div>
+              <span class="text-[11px] font-semibold text-vintage-green block mb-1"><i class="fa-solid fa-link text-vintage-gold mr-1"></i>Вказати Direct URL відео:</span>
+              <input type="text" id="prodVideo" oninput="showVideoPreview(this.value)" placeholder="https://.../video.mp4" class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white">
+            </div>
+            <div id="videoPreviewContainer" class="hidden pt-2 border-t border-vintage-border/50">
+              <span class="text-[11px] font-semibold text-vintage-green block mb-1">Попередній перегляд відео:</span>
+              <video id="videoPreview" controls class="w-full h-36 object-cover rounded-lg border-2 border-vintage-gold shadow-md bg-black"></video>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-3">
+          <button type="button" onclick="closeModal('productModal')" class="px-4 py-2 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Скасувати</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-vintage-green rounded-lg hover:bg-vintage-greenLight shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-check text-vintage-gold"></i> Зберегти в асортимент
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JS Скрипт -->
+  <script>
+    function sanitizeHTML(str) {
+      if (!str) return '';
+      // Декодуємо вже наявні амперсанди перед захистом, щоб уникнути подвійного екранування &amp;amp;
+      const decoded = String(str).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+      return decoded
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    const defaultProducts = [
+      { id: 1, name: "Троянда Red Naomi 60 см", nameStyle: "", priceStyle: "", description: "Преміальний еквадорський сорт з великим оксамитовим бутоном та глибоким червоним відтінком. Висока стійкість у зрізі до 14 днів.", category: "Троянди", wholesalePrice: 38, retailPrice: 50, multiplicity: 20, images: ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"], video: "", badge: "TOP" },
+      { id: 2, name: "Троянда Red Naomi 70 см", nameStyle: "", priceStyle: "", description: "Довге стебло та міцний келих. Ідеальний вибір для розкішних вертикальних букетів.", category: "Троянди", wholesalePrice: 44, retailPrice: 60, multiplicity: 20, images: ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"], video: "", badge: "" },
+      { id: 3, name: "Троянда Avalanche Біла 70 см", nameStyle: "", priceStyle: "", description: "Класична біла троянда з легким зеленуватим відтінком на зовнішніх пелюстках.", category: "Троянди", wholesalePrice: 42, retailPrice: 55, multiplicity: 20, images: ["https://images.unsplash.com/photo-1533616688419-b7a585564566?w=400"], video: "", badge: "TOP" },
+      { id: 4, name: "Троянда Peach Avalanche 60 см", nameStyle: "", priceStyle: "", description: "Ніжний персиковий відтінок, який гармонійно пасує до весільної флористики.", category: "Троянди", wholesalePrice: 40, retailPrice: 52, multiplicity: 20, images: ["https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400"], video: "", badge: "" },
+      { id: 5, name: "Троянда Freedom Еквадор 80 см", nameStyle: "", priceStyle: "", description: "Насичено-червона троянда екстра-класу з потужним довгим стеблом.", category: "Троянди", wholesalePrice: 58, retailPrice: 75, multiplicity: 25, images: ["https://images.unsplash.com/photo-1559563458-527698bf5295?w=400"], video: "", badge: "TOP" },
+      { id: 6, name: "Кущова троянда Misty Bubbles", nameStyle: "", priceStyle: "", description: "Округлі півонієподібні бутони насиченого бузково-рожевого кольору.", category: "Троянди", wholesalePrice: 65, retailPrice: 85, multiplicity: 10, images: ["https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=400"], video: "", badge: "SALE" },
+      { id: 7, name: "Півоніподібна троянда Juliet", nameStyle: "", priceStyle: "", description: "Знаменитий англійський сорт Девіда Остіна ніжного абрикосового забарвлення.", category: "Троянди", wholesalePrice: 78, retailPrice: 100, multiplicity: 10, images: ["https://images.unsplash.com/photo-1559563458-527698bf5295?w=400"], video: "", badge: "TOP" },
+      { id: 8, name: "Троянда Аваланж 50 см Асканія", nameStyle: "", priceStyle: "", description: "Свіжий тепличний зріз від українських виробників.", category: "Троянди", wholesalePrice: 60, retailPrice: 80, multiplicity: 20, images: ["https://images.unsplash.com/photo-1533616688419-b7a585564566?w=400"], video: "", badge: "TOP" },
+      { id: 9, name: "Троянда Аяла кущ. 60 см Асканія", nameStyle: "", priceStyle: "", description: "Густомахрова кущова троянда з чудовим солодким ароматом.", category: "Троянди", wholesalePrice: 96, retailPrice: 125, multiplicity: 10, images: ["https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=400"], video: "", badge: "NEW" },
+      { id: 10, name: "Троянда Готча 70 см Еквадор", nameStyle: "", priceStyle: "", description: "Яскраво-малиновий ексклюзивний сорт преміум якості.", category: "Троянди", wholesalePrice: 140, retailPrice: 180, multiplicity: 25, images: ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"], video: "", badge: "TOP" },
+      { id: 11, name: "Троянда Тралала кущ. 60 см Кенія", nameStyle: "", priceStyle: "", description: "Дрібноквіткова кущова троянда для об'ємних композицій.", category: "Троянди", wholesalePrice: 154, retailPrice: 195, multiplicity: 10, images: ["https://images.unsplash.com/photo-1559563458-527698bf5295?w=400"], video: "", badge: "" },
+      { id: 12, name: "Троянда Лемон Трендсеттер кущ. 75 см", nameStyle: "", priceStyle: "", description: "Оригінальний лимонно-салатовий відтінок для стильних авторських букетів.", category: "Троянди", wholesalePrice: 146, retailPrice: 185, multiplicity: 10, images: ["https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400"], video: "", badge: "TOP" },
+      { id: 13, name: "Троянда Оділія кущ. 70 см Україна", nameStyle: "", priceStyle: "", description: "Витривалий вітчизняний сорт із гарною пишною гілкою.", category: "Троянди", wholesalePrice: 138, retailPrice: 175, multiplicity: 20, images: ["https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=400"], video: "", badge: "" },
+      { id: 14, name: "Троянда Пінк Мондіаль 70 см Еквадор", nameStyle: "", priceStyle: "", description: "Витончений блідо-рожевий колір з гофрованими пелюстками.", category: "Троянди", wholesalePrice: 136, retailPrice: 170, multiplicity: 25, images: ["https://images.unsplash.com/photo-1559563458-527698bf5295?w=400"], video: "", badge: "TOP" },
+      { id: 15, name: "Троянда Пенні Лейн 60 см Україна", nameStyle: "", priceStyle: "", description: "Популярний вибір для святкових букетів за доступною ціною.", category: "Троянди", wholesalePrice: 78, retailPrice: 100, multiplicity: 20, images: ["https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400"], video: "", badge: "SALE" },
+      { id: 16, name: "Троянда Пушкін кущ. 70 см Кенія", nameStyle: "", priceStyle: "", description: "Вишукана висока кенійська кущова троянда.", category: "Троянди", wholesalePrice: 176, retailPrice: 220, multiplicity: 10, images: ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"], video: "", badge: "TOP" },
+      { id: 17, name: "Троянда Фруті Баблз кущ. 60 см Асканія", nameStyle: "", priceStyle: "", description: "Яскраве фруктове забарвлення та чудова стійкість.", category: "Троянди", wholesalePrice: 84, retailPrice: 110, multiplicity: 20, images: ["https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=400"], video: "", badge: "" },
+      { id: 18, name: "Троянда Шиммер 70 см Еквадор", nameStyle: "", priceStyle: "", description: "Розкішний двоколірний еквадорський сорт.", category: "Троянди", wholesalePrice: 140, retailPrice: 180, multiplicity: 25, images: ["https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400"], video: "", badge: "TOP" },
+      { id: 19, name: "Троянда Леді Бомбастик кущ. 50 см", nameStyle: "", priceStyle: "", description: "Мініатюрні шароподібні бутони яскраво-рожевої палітри.", category: "Троянди", wholesalePrice: 24, retailPrice: 35, multiplicity: 20, images: ["https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=400"], video: "", badge: "SALE" },
+      { id: 20, name: "Троянда 3-D 80 см Еквадор", nameStyle: "", priceStyle: "", description: "Супер-стійка елітна троянда з великим щільним бутоном.", category: "Троянди", wholesalePrice: 120, retailPrice: 155, multiplicity: 25, images: ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"], video: "", badge: "TOP" },
+      { id: 21, name: "Троянда Івана 60 см Камелія", nameStyle: "", priceStyle: "", description: "Яскравий сорт вітчизняного тепличного комбінату.", category: "Троянди", wholesalePrice: 72, retailPrice: 95, multiplicity: 10, images: ["https://images.unsplash.com/photo-1533616688419-b7a585564566?w=400"], video: "", badge: "" },
+      { id: 22, name: "Троянда Ігуазу 90 см Еквадор", nameStyle: "", priceStyle: "", description: "Гігантське стебло та винятна стійкість.", category: "Троянди", wholesalePrice: 140, retailPrice: 180, multiplicity: 25, images: ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"], video: "", badge: "TOP" },
+      { id: 23, name: "Троянда Ідол 80 см Еквадор", nameStyle: "", priceStyle: "", description: "Насичений рожевий колір і класична бокалоподібна форма.", category: "Троянди", wholesalePrice: 140, retailPrice: 180, multiplicity: 25, images: ["https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400"], video: "", badge: "" },
+      { id: 24, name: "Троянда Експлорер 50 см Харків", nameStyle: "", priceStyle: "", description: "Надійний місцевий зріз високої якості.", category: "Троянди", wholesalePrice: 66, retailPrice: 85, multiplicity: 20, images: ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"], video: "", badge: "TOP" },
+      { id: 25, name: "Троянда Лаперла 50 см Харків", nameStyle: "", priceStyle: "", description: "Ніжний кремовий відтінок для легких весняних букетів.", category: "Троянди", wholesalePrice: 52, retailPrice: 70, multiplicity: 20, images: ["https://images.unsplash.com/photo-1533616688419-b7a585564566?w=400"], video: "", badge: "" },
+      { id: 26, name: "Хризантема Bacardi Біла (Гілка)", nameStyle: "", priceStyle: "", description: "Пишна кущова хризантема з яскравою зеленою серединкою.", category: "Зрізані квіти", wholesalePrice: 48, retailPrice: 65, multiplicity: 10, images: ["https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=400"], video: "", badge: "TOP" },
+      { id: 27, name: "Хризантема Сантіні (Гілка)", nameStyle: "", priceStyle: "", description: "Дрібноквіткова кущова хризантема підвищеної стійкості.", category: "Зрізані квіти", wholesalePrice: 48, retailPrice: 65, multiplicity: 10, images: ["https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=400"], video: "", badge: "TOP" },
+      { id: 28, name: "Еустома Rosita Pink", nameStyle: "", priceStyle: "", description: "Витончена японська троянда (Лізіантус) махрових сортів.", category: "Зрізані квіти", wholesalePrice: 60, retailPrice: 80, multiplicity: 10, images: ["https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=400"], video: "", badge: "TOP" },
+      { id: 29, name: "Гортензія Блакитна Premium", nameStyle: "", priceStyle: "", description: "Великі шапки насиченого блакитного кольору, що потребують багато вологи.", category: "Зрізані квіти", wholesalePrice: 180, retailPrice: 230, multiplicity: 5, images: ["https://images.unsplash.com/photo-1508610048659-a06b669e3321?w=400"], video: "", badge: "" },
+      { id: 30, name: "Орхідея Фаленопсис (2 стволи)", nameStyle: "", priceStyle: "", description: "Кімнатна жива орхідея в горщику з двома рясними квітконосами.", category: "Горшкові рослини", wholesalePrice: 450, retailPrice: 580, multiplicity: 1, images: ["https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?w=400"], video: "", badge: "TOP" },
+      { id: 31, name: "Фікус Бенджаміна Даніель", nameStyle: "", priceStyle: "", description: "Популярна декоративна рослина для інтер'єру офісів та домівок.", category: "Горшкові рослини", wholesalePrice: 320, retailPrice: 420, multiplicity: 1, images: ["https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=400"], video: "", badge: "" },
+      { id: 32, name: "Евкаліпт Cinerea (Пучок)", nameStyle: "", priceStyle: "", description: "Ароматна зелень із сріблястим листями для доповнення букетів.", category: "Декоративна зелень", wholesalePrice: 160, retailPrice: 210, multiplicity: 1, images: ["https://images.unsplash.com/photo-1512428559087-560fa5ceab42?w=400"], video: "", badge: "TOP" },
+      { id: 33, name: "Гіпсофіла Веселкова Rainbow", nameStyle: "", priceStyle: "", description: "Яскрава різнокольорова гіпсофіла глибокого фарбування.", category: "Фарбовані квіти", wholesalePrice: 340, retailPrice: 430, multiplicity: 1, images: ["https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=400"], video: "", badge: "SALE" },
+      { id: 34, name: "Лаванда Сухоцвіт (Франція)", nameStyle: "", priceStyle: "", description: "Прованська суха лаванда з насиченим стійким ароматом.", category: "Сухоцвіти", wholesalePrice: 210, retailPrice: 270, multiplicity: 1, images: ["https://images.unsplash.com/photo-1611909023032-2d6b3134ecba?w=400"], video: "", badge: "TOP" },
+      { id: 35, name: "Крафт-папір двосторонній", nameStyle: "", priceStyle: "", description: "Професійний водостійкий папір для упаковки квітів.", category: "Фурнітура та упаковка", wholesalePrice: 110, retailPrice: 150, multiplicity: 1, images: ["https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=400"], video: "", badge: "" },
+      { id: 36, name: "Підкормка Chrysal Universal", nameStyle: "", priceStyle: "", description: "Пакетики з живильним порошком для подовження життя зрізаних квітів.", category: "Добрива", wholesalePrice: 195, retailPrice: 250, multiplicity: 1, images: ["https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400"], video: "", badge: "TOP" },
+      { id: 37, name: "Троянда мікс (2 сорт, 40 см)", nameStyle: "", priceStyle: "", description: "Вигідна пропозиція для оформлення вітрин та масштабних подій.", category: "Другий сорт", wholesalePrice: 18, retailPrice: 25, multiplicity: 20, images: ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"], video: "", badge: "SALE" }
+    ];
+
+    const defaultCategoriesList = [
+      "Троянди", 
+      "Зрізані квіти", 
+      "Горшкові рослини", 
+      "Декоративна зелень", 
+      "Фарбовані квіти", 
+      "Сухоцвіти", 
+      "Фурнітура та упаковка", 
+      "Добрива", 
+      "Другий сорт"
+    ];
+
+    let systemTabs = {
+      allProducts: "Усі товари",
+      sales: "Акції"
+    };
+
+    const paymentBankInfo = {
+      recipient: "Шумаєв О. М. ФОП",
+      code: "2958015014",
+      iban: "UA073052990000026004045206307",
+      bank: 'АТ КБ "ПРИВАТБАНК"'
+    };
+
+    let headerData = {
+      title: "Petal & Pearl",
+      subtitle: "КВІТКОВА КРАМНИЦЯ",
+      phone: "+38 (095) 544-01-67",
+      hours: "Пн-Нд: 08:00 - 20:00",
+      logo: "https://lh3.googleusercontent.com/d/1mWStnjc8PAIUXY8zk5QaeDMIuIEJG9X5",
+      heroBadge: "Повний асортимент гуртового склада",
+      heroTitle: "Пелюстки краси та перлини вишуканості",
+      heroDesc: "Ласкаво просимо до вишуканої квіткової крамниці «Petal & Pearl». У нас зібрано повний асортимент зрізаних троянд, хризантем, еустом, горшкових рослин, декору та витонченої фурнітури в старовинному класичному стилі."
+    };
+
+    let footerData = {
+      desc: "Прямі гуртові та роздрібні поставки квітів з Голландського аукціону та місцевих тепличних господарств.",
+      copyright: "© 2026 Petal & Pearl. Всі права захищені.",
+      email: "petal.pearl.flowers@gmail.com",
+      address: "Доставка по Україні / Гуртовий склад",
+      telegram: "https://t.me/+380955440167",
+      viber: "viber://chat?number=%2B380955440167",
+      instagram: "https://www.instagram.com/petal_pearl_flowers",
+      tiktok: "https://www.tiktok.com/@petal_pearl_flowers",
+      facebook: "https://www.facebook.com/petal_pearl_flowers"
+    };
+
+    let categoriesList = [];
+    let products = [];
+    let currentCategory = "";
+    let cart = {};
+    let viewMode = "grid";
+    let isAdmin = false;
+    let paymentsClient = null;
+    let activeMediaProduct = null;
+    let activeMediaIndex = 0;
+    let isMusicPlaying = false;
+
+    window.onload = () => {
+      // Очищуємо старий битий кеш за потреби
+      if (localStorage.getItem('petal_pearl_header') && localStorage.getItem('petal_pearl_header').includes('&amp;amp;')) {
+        localStorage.removeItem('petal_pearl_header');
+      }
+      loadState();
+      if (!currentCategory) currentCategory = systemTabs.allProducts;
+      renderCategoryNav();
+      filterProducts();
+      checkAdminStatus();
+
+      const audio = document.getElementById('bgAudio');
+      audio.volume = 0.5;
+    };
+
+    function toggleBackgroundMusic() {
+      const audio = document.getElementById('bgAudio');
+      if (isMusicPlaying) {
+        audio.pause();
+        isMusicPlaying = false;
+      } else {
+        audio.play().then(() => {
+          isMusicPlaying = true;
+        }).catch(() => {
+          alert('Блокування браузера: будь ласка, зробіть ще один клік на сторінці для активації звуку.');
+        });
+      }
+      updateMusicButtonUI();
+    }
+
+    function updateMusicButtonUI() {
+      const icon = document.getElementById('musicIcon');
+      const text = document.getElementById('musicText');
+      if (isMusicPlaying) {
+        icon.className = "fa-solid fa-volume-high text-emerald-400 animate-pulse";
+        text.innerText = "Музика: Грає";
+      } else {
+        icon.className = "fa-solid fa-volume-xmark text-vintage-gold";
+        text.innerText = "Музика: Вимк";
+      }
+    }
+
+    function loadState() {
+      const savedProducts = localStorage.getItem('petal_pearl_products');
+      if (savedProducts) {
+        try {
+          const parsed = JSON.parse(savedProducts);
+          products = parsed.map(item => {
+            let imgs = [];
+            if (Array.isArray(item.images) && item.images.length > 0) {
+              imgs = item.images.map(img => String(img));
+            } else if (item.img) {
+              imgs = [String(item.img)];
+            } else {
+              imgs = ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"];
+            }
+            return {
+              id: Number(item.id),
+              name: sanitizeHTML(item.name),
+              nameStyle: sanitizeHTML(item.nameStyle || ""),
+              priceStyle: sanitizeHTML(item.priceStyle || ""),
+              description: sanitizeHTML(item.description || "Якісна продукція з гуртового складу."),
+              category: sanitizeHTML(item.category),
+              wholesalePrice: Number(item.wholesalePrice) || 30,
+              retailPrice: Number(item.retailPrice) || 40,
+              multiplicity: Number(item.multiplicity) || 1,
+              images: imgs,
+              video: item.video || "",
+              badge: sanitizeHTML(item.badge || "")
+            };
+          });
+        } catch(e) {
+          products = defaultProducts.map(p => ({...p, images: [p.img]}));
+        }
+      } else {
+        products = defaultProducts.map(p => ({...p, images: [p.img]}));
+      }
+      
+      const savedCategories = localStorage.getItem('petal_pearl_categories');
+      if (savedCategories) {
+        try {
+          categoriesList = JSON.parse(savedCategories).map(c => sanitizeHTML(c));
+        } catch(e) {
+          categoriesList = [...defaultCategoriesList];
+        }
+      } else {
+        categoriesList = [...defaultCategoriesList];
+      }
+
+      const savedSystemTabs = localStorage.getItem('petal_pearl_system_tabs');
+      if (savedSystemTabs) {
+        try {
+          const parsedST = JSON.parse(savedSystemTabs);
+          systemTabs.allProducts = sanitizeHTML(parsedST.allProducts || "Усі товари");
+          systemTabs.sales = sanitizeHTML(parsedST.sales || "Акції");
+        } catch(e) {}
+      }
+
+      const savedCurrentCat = localStorage.getItem('petal_pearl_current_cat');
+      if (savedCurrentCat) {
+        currentCategory = sanitizeHTML(savedCurrentCat);
+      }
+
+      const savedHeader = localStorage.getItem('petal_pearl_header');
+      if (savedHeader) {
+        try {
+          const parsedH = JSON.parse(savedHeader);
+          headerData = {
+            title: sanitizeHTML(parsedH.title || headerData.title),
+            subtitle: sanitizeHTML(parsedH.subtitle || headerData.subtitle),
+            phone: sanitizeHTML(parsedH.phone || headerData.phone),
+            hours: sanitizeHTML(parsedH.hours || headerData.hours),
+            logo: parsedH.logo || headerData.logo,
+            heroBadge: sanitizeHTML(parsedH.heroBadge || headerData.heroBadge),
+            heroTitle: sanitizeHTML(parsedH.heroTitle || headerData.heroTitle),
+            heroDesc: sanitizeHTML(parsedH.heroDesc || headerData.heroDesc)
+          };
+        } catch(e) {}
+      }
+
+      const savedFooter = localStorage.getItem('petal_pearl_footer');
+      if (savedFooter) {
+        try {
+          const parsedF = JSON.parse(savedFooter);
+          footerData = {
+            desc: sanitizeHTML(parsedF.desc || footerData.desc),
+            copyright: sanitizeHTML(parsedF.copyright || footerData.copyright),
+            email: sanitizeHTML(parsedF.email || footerData.email),
+            address: sanitizeHTML(parsedF.address || footerData.address),
+            telegram: parsedF.telegram || footerData.telegram,
+            viber: parsedF.viber || footerData.viber,
+            instagram: parsedF.instagram || footerData.instagram,
+            tiktok: parsedF.tiktok || footerData.tiktok,
+            facebook: parsedF.facebook || footerData.facebook
+          };
+        } catch(e) {}
+      }
+
+      applyHeaderData();
+      applyFooterData();
+    }
+
+    function applyHeaderData() {
+      document.getElementById('siteTitleDisplay').innerText = headerData.title;
+      document.getElementById('siteSubtitleDisplay').innerText = headerData.subtitle;
+      document.getElementById('sitePhoneDisplay').innerText = headerData.phone;
+      document.getElementById('siteHoursDisplay').innerText = headerData.hours;
+      
+      const targetPhoneCall = "tel:+380955440167";
+      document.getElementById('sitePhoneHeaderLink').href = targetPhoneCall;
+      document.getElementById('heroPhoneBtn').href = targetPhoneCall;
+      document.getElementById('heroPhoneBtnText').innerText = 'Замовити: ' + headerData.phone;
+      if (document.getElementById('footerPhoneLink')) {
+        document.getElementById('footerPhoneLink').href = targetPhoneCall;
+        document.getElementById('footerPhoneLink').innerText = headerData.phone;
+      }
+      
+      if (document.getElementById('siteLogoImg')) document.getElementById('siteLogoImg').src = headerData.logo;
+      if (document.getElementById('heroLogoImg')) document.getElementById('heroLogoImg').src = headerData.logo;
+      if (document.getElementById('footerLogoImg')) document.getElementById('footerLogoImg').src = headerData.logo;
+      
+      document.getElementById('heroBadgeDisplay').innerHTML = `<i class="fa-solid fa-feather-pointed"></i> ${headerData.heroBadge}`;
+      document.getElementById('heroTitleDisplay').innerText = headerData.heroTitle;
+      document.getElementById('heroDescDisplay').innerText = headerData.heroDesc;
+    }
+
+    function applyFooterData() {
+      if (document.getElementById('footerDescDisplay')) document.getElementById('footerDescDisplay').innerText = footerData.desc;
+      if (document.getElementById('footerCopyrightDisplay')) document.getElementById('footerCopyrightDisplay').innerText = footerData.copyright;
+      if (document.getElementById('footerEmailDisplay')) document.getElementById('footerEmailDisplay').innerText = footerData.email;
+      if (document.getElementById('footerAddressDisplay')) document.getElementById('footerAddressDisplay').innerText = footerData.address;
+      
+      if (document.getElementById('footerTelegramLink')) document.getElementById('footerTelegramLink').href = footerData.telegram;
+      if (document.getElementById('footerViberLink')) document.getElementById('footerViberLink').href = footerData.viber;
+      if (document.getElementById('footerInstagramLink')) document.getElementById('footerInstagramLink').href = footerData.instagram;
+      if (document.getElementById('footerTiktokLink')) document.getElementById('footerTiktokLink').href = footerData.tiktok || "https://www.tiktok.com";
+      if (document.getElementById('footerFacebookLink')) document.getElementById('footerFacebookLink').href = footerData.facebook || "https://www.facebook.com";
+    }
+
+    function saveProductsState() {
+      localStorage.setItem('petal_pearl_products', JSON.stringify(products));
+      renderCategoryNav();
+    }
+
+    function saveCategoriesState() {
+      localStorage.setItem('petal_pearl_categories', JSON.stringify(categoriesList));
+      localStorage.setItem('petal_pearl_system_tabs', JSON.stringify(systemTabs));
+      renderCategoryNav();
+    }
+
+    function saveHeaderState() {
+      localStorage.setItem('petal_pearl_header', JSON.stringify(headerData));
+      applyHeaderData();
+    }
+
+    function saveFooterState() {
+      localStorage.setItem('petal_pearl_footer', JSON.stringify(footerData));
+      applyFooterData();
+    }
+
+    function checkAdminStatus() {
+      isAdmin = sessionStorage.getItem('petal_pearl_admin') === 'true';
+      document.getElementById('adminPanel').classList.toggle('hidden', !isAdmin);
+      document.getElementById('adminBadge').classList.toggle('hidden', !isAdmin);
+      document.getElementById('adminCatalogAddBtn').classList.toggle('hidden', !isAdmin);
+      document.getElementById('adminBtnText').innerText = isAdmin ? "Режим редагування" : "Вхід для адміна";
+      filterProducts();
+    }
+
+    function getCurrentAdminPassword() {
+      return localStorage.getItem('petal_pearl_admin_pass') || '26121980';
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const pass = document.getElementById('adminPasswordInput').value;
+      if (pass === getCurrentAdminPassword()) {
+        sessionStorage.setItem('petal_pearl_admin', 'true');
+        closeModal('adminModal');
+        checkAdminStatus();
+      } else {
+        alert('Невірний пароль!');
+      }
+    }
+
+    function openChangePasswordModal() {
+      if (!isAdmin) return;
+      document.getElementById('oldPasswordInput').value = '';
+      document.getElementById('newPasswordInput').value = '';
+      document.getElementById('confirmPasswordInput').value = '';
+      openModal('changePasswordModal');
+    }
+
+    function handleChangePassword(e) {
+      e.preventDefault();
+      if (!isAdmin) return;
+      const oldPass = document.getElementById('oldPasswordInput').value;
+      const newPass = document.getElementById('newPasswordInput').value;
+      const confirmPass = document.getElementById('confirmPasswordInput').value;
+
+      if (oldPass !== getCurrentAdminPassword()) {
+        alert('Поточний пароль введено невірно!');
+        return;
+      }
+      if (newPass.length < 4) {
+        alert('Новий пароль занадто короткий (мінімум 4 символи)!');
+        return;
+      }
+      if (newPass !== confirmPass) {
+        alert('Нові паролі не збігаються!');
+        return;
+      }
+
+      localStorage.setItem('petal_pearl_admin_pass', newPass);
+      alert('Пароль успішно змінено!');
+      closeModal('changePasswordModal');
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('petal_pearl_admin');
+      checkAdminStatus();
+    }
+
+    function toggleAdminModal() {
+      if (isAdmin) logoutAdmin(); else openModal('adminModal');
+    }
+
+    /* ФОРМАТУВАННЯ У СТИЛІ WORD З МИТТЄВИМ ПЕРЕГЛЯДОМ */
+    function formatProdField(field, type, value = '') {
+      if (field === 'name') {
+        const input = document.getElementById('prodName');
+        let currentStyle = document.getElementById('prodNameStyle').value || "";
+
+        if (type === 'bold') {
+          currentStyle += currentStyle.includes('font-bold') ? '' : ' font-bold';
+        } else if (type === 'italic') {
+          currentStyle += currentStyle.includes('italic') ? '' : ' italic';
+        } else if (type === 'underline') {
+          currentStyle += currentStyle.includes('underline') ? '' : ' underline';
+        } else if (type === 'size') {
+          currentStyle = currentStyle.replace(/text-(sm|base|lg|xl)/g, '');
+          if (value) currentStyle += ` ${value}`;
+        } else if (type === 'color') {
+          currentStyle = currentStyle.replace(/text-(vintage-green|vintage-gold|red-700|amber-950)/g, '');
+          if (value) currentStyle += ` ${value}`;
+        }
+
+        document.getElementById('prodNameStyle').value = currentStyle.trim();
+        input.className = `w-full border border-vintage-border rounded-lg p-2 text-sm bg-white ${document.getElementById('prodNameStyle').value}`;
+      } else if (field === 'price') {
+        let currentStyle = document.getElementById('prodPriceStyle').value || "";
+
+        if (type === 'bold') {
+          currentStyle += currentStyle.includes('font-bold') ? '' : ' font-bold';
+        } else if (type === 'italic') {
+          currentStyle += currentStyle.includes('italic') ? '' : ' italic';
+        } else if (type === 'underline') {
+          currentStyle += currentStyle.includes('underline') ? '' : ' underline';
+        } else if (type === 'size') {
+          currentStyle = currentStyle.replace(/text-(sm|base|lg|xl)/g, '');
+          if (value) currentStyle += ` ${value}`;
+        } else if (type === 'color') {
+          currentStyle = currentStyle.replace(/text-(vintage-green|vintage-gold|red-700|amber-950)/g, '');
+          if (value) currentStyle += ` ${value}`;
+        }
+
+        document.getElementById('prodPriceStyle').value = currentStyle.trim();
+      }
+
+      updateLivePreview();
+    }
+
+    function updateLivePreview() {
+      const nameVal = document.getElementById('prodName').value.trim() || "Назва товару";
+      const nameStyle = document.getElementById('prodNameStyle').value;
+      const wholesaleVal = document.getElementById('prodWholesalePrice').value || "38";
+      const retailVal = document.getElementById('prodRetailPrice').value || "50";
+      const priceStyle = document.getElementById('prodPriceStyle').value;
+
+      const prevName = document.getElementById('previewName');
+      prevName.className = `font-serif text-base font-bold block ${nameStyle}`;
+      prevName.innerText = nameVal;
+
+      const prevWholesale = document.getElementById('previewWholesale');
+      prevWholesale.className = `font-serif font-bold ${priceStyle}`;
+      prevWholesale.innerText = `${wholesaleVal} грн`;
+
+      const prevRetail = document.getElementById('previewRetail');
+      prevRetail.className = `font-serif font-bold ${priceStyle}`;
+      prevRetail.innerText = `${retailVal} грн`;
+    }
+
+    /* МЕДІА МОДАЛЬНЕ ВІКНО З ГАЛЕРЕЄЮ ТА ОПИСОМ */
+    function openMediaModal(id, defaultMode = 'photo', imgIndex = 0) {
+      const p = products.find(item => item.id === id);
+      if (!p) return;
+      activeMediaProduct = p;
+      activeMediaIndex = imgIndex >= 0 && imgIndex < p.images.length ? imgIndex : 0;
+
+      document.getElementById('mediaModalTitle').innerHTML = `<span class="${p.nameStyle || ''}">${p.name}</span>`;
+      document.getElementById('mediaModalDescription').innerText = p.description || "Опис відсутній.";
+      
+      const videoEl = document.getElementById('mediaModalVideo');
+      const btnVideo = document.getElementById('btnMediaVideo');
+
+      if (p.video && p.video.trim() !== '') {
+        videoEl.src = p.video;
+        btnVideo.classList.remove('hidden');
+      } else {
+        videoEl.src = '';
+        btnVideo.classList.add('hidden');
+      }
+
+      if (defaultMode === 'video' && (!p.video || p.video.trim() === '')) {
+        defaultMode = 'photo';
+      }
+
+      updateMediaModalView();
+      switchMediaMode(defaultMode);
+      openModal('mediaModal');
+    }
+
+    function updateMediaModalView() {
+      if (!activeMediaProduct) return;
+      const imgEl = document.getElementById('mediaModalImg');
+      const currentImgSrc = activeMediaProduct.images[activeMediaIndex] || activeMediaProduct.images[0];
+      imgEl.src = currentImgSrc;
+
+      const thumbsContainer = document.getElementById('mediaThumbnailsContainer');
+      if (activeMediaProduct.images.length > 1) {
+        thumbsContainer.innerHTML = activeMediaProduct.images.map((imgUrl, idx) => `
+          <img src="${imgUrl}" onclick="setMediaImageIndex(${idx})" class="w-14 h-14 object-cover rounded-lg border-2 ${idx === activeMediaIndex ? 'border-vintage-gold scale-105 shadow-md' : 'border-vintage-border/70 opacity-70 hover:opacity-100'} cursor-pointer transition">
+        `).join('');
+        thumbsContainer.classList.remove('hidden');
+      } else {
+        thumbsContainer.innerHTML = '';
+        thumbsContainer.classList.add('hidden');
+      }
+    }
+
+    function setMediaImageIndex(idx) {
+      activeMediaIndex = idx;
+      switchMediaMode('photo');
+      updateMediaModalView();
+    }
+
+    function switchMediaMode(mode) {
+      const imgEl = document.getElementById('mediaModalImg');
+      const videoEl = document.getElementById('mediaModalVideo');
+      const btnPhoto = document.getElementById('btnMediaPhoto');
+      const btnVideo = document.getElementById('btnMediaVideo');
+      const thumbsContainer = document.getElementById('mediaThumbnailsContainer');
+
+      if (mode === 'photo') {
+        imgEl.classList.remove('hidden');
+        videoEl.classList.add('hidden');
+        videoEl.pause();
+        if (activeMediaProduct && activeMediaProduct.images.length > 1) {
+          thumbsContainer.classList.remove('hidden');
+        }
+
+        btnPhoto.className = "px-3.5 py-1.5 text-xs font-bold rounded transition bg-vintage-green text-white flex items-center gap-1.5 shadow";
+        btnVideo.className = "px-3.5 py-1.5 text-xs font-bold rounded transition text-vintage-green hover:bg-vintage-card flex items-center gap-1.5";
+      } else if (mode === 'video') {
+        imgEl.classList.add('hidden');
+        videoEl.classList.remove('hidden');
+        thumbsContainer.classList.add('hidden');
+        videoEl.play().catch(()=>{});
+
+        btnVideo.className = "px-3.5 py-1.5 text-xs font-bold rounded transition bg-vintage-green text-white flex items-center gap-1.5 shadow";
+        btnPhoto.className = "px-3.5 py-1.5 text-xs font-bold rounded transition text-vintage-green hover:bg-vintage-card flex items-center gap-1.5";
+      }
+    }
+
+    function closeMediaModal() {
+      const videoEl = document.getElementById('mediaModalVideo');
+      if (videoEl) {
+        videoEl.pause();
+        videoEl.src = '';
+      }
+      closeModal('mediaModal');
+    }
+
+    /* РЕДАГУВАННЯ ФУТЕРА */
+    function openEditFooterModal() {
+      if (!isAdmin) return;
+      document.getElementById('editFooterDesc').value = footerData.desc;
+      document.getElementById('editFooterCopyright').value = footerData.copyright;
+      document.getElementById('editFooterEmail').value = footerData.email;
+      document.getElementById('editFooterAddress').value = footerData.address;
+      document.getElementById('editFooterTelegram').value = footerData.telegram;
+      document.getElementById('editFooterViber').value = footerData.viber;
+      document.getElementById('editFooterInstagram').value = footerData.instagram;
+      document.getElementById('editFooterTiktok').value = footerData.tiktok || "";
+      document.getElementById('editFooterFacebook').value = footerData.facebook || "";
+      openModal('footerModal');
+    }
+
+    function saveFooterForm(e) {
+      e.preventDefault();
+      if (!isAdmin) return;
+      footerData.desc = sanitizeHTML(document.getElementById('editFooterDesc').value);
+      footerData.copyright = sanitizeHTML(document.getElementById('editFooterCopyright').value);
+      footerData.email = sanitizeHTML(document.getElementById('editFooterEmail').value);
+      footerData.address = sanitizeHTML(document.getElementById('editFooterAddress').value);
+      footerData.telegram = document.getElementById('editFooterTelegram').value;
+      footerData.viber = document.getElementById('editFooterViber').value;
+      footerData.instagram = document.getElementById('editFooterInstagram').value;
+      footerData.tiktok = document.getElementById('editFooterTiktok').value;
+      footerData.facebook = document.getElementById('editFooterFacebook').value;
+
+      saveFooterState();
+      closeModal('footerModal');
+    }
+
+    /* РЕДАГУВАННЯ КАТЕГОРІЙ ТА СИСТЕМНИХ ВКЛАДОК */
+    function openCategoriesModal() {
+      if (!isAdmin) return;
+      document.getElementById('tabAllProducts').value = systemTabs.allProducts;
+      document.getElementById('tabSales').value = systemTabs.sales;
+      renderCategoriesEditorList();
+      openModal('categoriesModal');
+    }
+
+    function renderCategoriesEditorList() {
+      const container = document.getElementById('categoriesEditorList');
+      container.innerHTML = categoriesList.map((cat, idx) => `
+        <div class="flex items-center gap-2 bg-white/80 p-2 rounded-lg border border-vintage-border">
+          <span class="text-xs font-bold text-vintage-gold w-6">${idx + 1}.</span>
+          <input type="text" value="${cat}" id="catInput-${idx}" class="flex-1 border border-vintage-border rounded p-1.5 text-xs font-semibold text-vintage-green bg-white">
+          <button type="button" onclick="deleteCategoryItem(${idx})" class="text-red-500 hover:text-red-700 p-1.5 text-xs" title="Видалити категорію"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function addNewCategoryFromInput() {
+      const input = document.getElementById('newCategoryInput');
+      const val = sanitizeHTML(input.value.trim());
+      if (val) {
+        categoriesList.push(val);
+        input.value = '';
+        renderCategoriesEditorList();
+      }
+    }
+
+    function deleteCategoryItem(index) {
+      if (confirm(`Видалити категорію "${categoriesList[index]}"?`)) {
+        categoriesList.splice(index, 1);
+        renderCategoriesEditorList();
+      }
+    }
+
+    function saveCategoriesForm(e) {
+      e.preventDefault();
+      if (!isAdmin) return;
+      
+      systemTabs.allProducts = sanitizeHTML(document.getElementById('tabAllProducts').value.trim()) || "Усі товари";
+      systemTabs.sales = sanitizeHTML(document.getElementById('tabSales').value.trim()) || "Акції";
+
+      const updatedList = [];
+      categoriesList.forEach((_, idx) => {
+        const inp = document.getElementById(`catInput-${idx}`);
+        if (inp && inp.value.trim() !== '') {
+          updatedList.push(sanitizeHTML(inp.value.trim()));
+        }
+      });
+
+      categoriesList = updatedList;
+      if (currentCategory !== systemTabs.allProducts && currentCategory !== systemTabs.sales && !categoriesList.includes(currentCategory)) {
+        currentCategory = systemTabs.allProducts;
+      }
+
+      saveCategoriesState();
+      filterProducts();
+      closeModal('categoriesModal');
+    }
+
+    /* Навігаційна панель та підвал */
+    function renderCategoryNav() {
+      const datalist = document.getElementById('categoryOptionsList');
+      if (datalist) {
+        datalist.innerHTML = categoriesList.map(c => `<option value="${c}">`).join('');
+      }
+
+      const fullNavList = [systemTabs.allProducts, systemTabs.sales, ...categoriesList];
+      
+      document.getElementById("categoryNav").innerHTML = fullNavList.map(cat => `
+        <button onclick="setCategory('${cat}')" class="px-3.5 py-1.5 rounded-lg transition ${currentCategory === cat ? 'bg-vintage-gold text-white font-bold shadow' : 'text-vintage-cream hover:bg-vintage-gold/30'}">
+          ${cat === systemTabs.sales ? '🔥 ' + cat : cat}
+        </button>
+      `).join('');
+
+      const footerCatList = document.getElementById("footerCategoriesList");
+      if (footerCatList) {
+        footerCatList.innerHTML = categoriesList.slice(0, 5).map(c => `
+          <li><a href="#" onclick="setCategory('${c}')" class="hover:text-vintage-gold transition">🌸 ${c}</a></li>
+        `).join('');
+      }
+    }
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      localStorage.setItem('petal_pearl_current_cat', cat);
+      renderCategoryNav();
+      
+      let titleText = cat;
+      if (cat === systemTabs.allProducts) titleText = "Повний асортимент товарів";
+      else if (cat === systemTabs.sales) titleText = "Акційні пропозиції";
+      
+      document.getElementById("currentCategoryTitle").innerText = titleText;
+      filterProducts();
+    }
+
+    function openEditHeaderModal() {
+      if (!isAdmin) return;
+      document.getElementById('editHeaderTitle').value = headerData.title;
+      document.getElementById('editHeaderSubtitle').value = headerData.subtitle;
+      document.getElementById('editHeaderPhone').value = headerData.phone;
+      document.getElementById('editHeaderHours').value = headerData.hours;
+      document.getElementById('editHeaderLogo').value = headerData.logo;
+      document.getElementById('editHeroBadge').value = headerData.heroBadge;
+      document.getElementById('editHeroTitle').value = headerData.heroTitle;
+      document.getElementById('editHeroDesc').value = headerData.heroDesc;
+      openModal('headerModal');
+    }
+
+    function handleLogoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('editHeaderLogo').value = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveHeaderForm(e) {
+      e.preventDefault();
+      if (!isAdmin) return;
+      headerData.title = sanitizeHTML(document.getElementById('editHeaderTitle').value);
+      headerData.subtitle = sanitizeHTML(document.getElementById('editHeaderSubtitle').value);
+      headerData.phone = sanitizeHTML(document.getElementById('editHeaderPhone').value);
+      headerData.hours = sanitizeHTML(document.getElementById('editHeaderHours').value);
+      headerData.logo = document.getElementById('editHeaderLogo').value || "https://lh3.googleusercontent.com/d/1mWStnjc8PAIUXY8zk5QaeDMIuIEJG9X5";
+      headerData.heroBadge = sanitizeHTML(document.getElementById('editHeroBadge').value);
+      headerData.heroTitle = sanitizeHTML(document.getElementById('editHeroTitle').value);
+      headerData.heroDesc = sanitizeHTML(document.getElementById('editHeroDesc').value);
+
+      saveHeaderState();
+      closeModal('headerModal');
+    }
+
+    function toggleView(mode) {
+      viewMode = mode;
+      document.getElementById('gridView').classList.toggle('hidden', mode !== 'grid');
+      document.getElementById('tableView').classList.toggle('hidden', mode !== 'table');
+      document.getElementById('btnViewGrid').className = mode === 'grid' ? "p-2 text-sm bg-vintage-green text-white rounded transition shadow" : "p-2 text-sm text-vintage-green hover:bg-vintage-card rounded transition";
+      document.getElementById('btnViewTable').className = mode === 'table' ? "p-2 text-sm bg-vintage-green text-white rounded transition shadow" : "p-2 text-sm text-vintage-green hover:bg-vintage-card rounded transition";
+    }
+
+    function filterProducts() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const sortBy = document.getElementById("sortSelect").value;
+
+      let filtered = products.filter(p => {
+        let matchesCategory = false;
+        if (currentCategory === systemTabs.allProducts) {
+          matchesCategory = true;
+        } else if (currentCategory === systemTabs.sales) {
+          matchesCategory = p.badge === "SALE";
+        } else {
+          matchesCategory = p.category === currentCategory;
+        }
+
+        const matchesSearch = p.name.toLowerCase().includes(search) || (p.category && p.category.toLowerCase().includes(search));
+        return matchesCategory && matchesSearch;
+      });
+
+      if (sortBy === 'wholesale-asc') filtered.sort((a,b) => a.wholesalePrice - b.wholesalePrice);
+      if (sortBy === 'wholesale-desc') filtered.sort((a,b) => b.wholesalePrice - a.wholesalePrice);
+      if (sortBy === 'retail-asc') filtered.sort((a,b) => a.retailPrice - b.retailPrice);
+      if (sortBy === 'retail-desc') filtered.sort((a,b) => b.retailPrice - a.retailPrice);
+      if (sortBy === 'name') filtered.sort((a,b) => a.name.localeCompare(b.name));
+
+      document.getElementById("productCount").innerText = `Знайдено позицій: ${filtered.length}`;
+      renderGrid(filtered);
+      renderTable(filtered);
+    }
+
+    function renderGrid(productList) {
+      const grid = document.getElementById("gridView");
+      if (productList.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-16 text-vintage-green/60 font-serif text-lg">Квітів у цій категорії не знайдено</div>`;
+        return;
+      }
+      grid.innerHTML = productList.map(p => {
+        const mainImg = (p.images && p.images.length > 0) ? p.images[0] : "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400";
+        const hasMultiple = p.images && p.images.length > 1;
+        const pStyle = p.priceStyle || "";
+
+        return `
+          <div class="vintage-card-frame rounded-2xl overflow-hidden flex flex-col relative group">
+            ${isAdmin ? `
+              <div class="absolute top-2.5 left-2.5 z-20 flex gap-1">
+                <button onclick="openEditProductModal(${p.id})" class="bg-amber-500 text-white p-1.5 rounded-lg shadow-md text-xs hover:bg-amber-600" title="Редагувати"><i class="fa-solid fa-pen"></i></button>
+                <button onclick="deleteProduct(${p.id})" class="bg-red-600 text-white p-1.5 rounded-lg shadow-md text-xs hover:bg-red-700" title="Видалити"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            ` : ''}
+            
+            <div onclick="openMediaModal(${p.id}, 'photo', 0)" class="relative h-56 bg-vintage-cream overflow-hidden border-b border-vintage-border/60 cursor-pointer group/img" title="Натисніть для перегляду галереї та опису">
+              <img src="${mainImg}" alt="${p.name}" class="w-full h-full object-cover group-hover/img:scale-105 transition duration-500">
+              
+              <div class="absolute inset-0 bg-black/25 opacity-0 group-hover/img:opacity-100 transition duration-300 flex items-center justify-center gap-2">
+                <span class="bg-vintage-green/90 text-vintage-cream text-xs font-bold px-3 py-1.5 rounded-full border border-vintage-gold flex items-center gap-1.5 shadow-xl backdrop-blur-sm">
+                  <i class="fa-solid fa-magnifying-glass-plus text-vintage-gold"></i> Переглянути ${hasMultiple ? `(${p.images.length} фото)` : ''}
+                </span>
+              </div>
+
+              ${hasMultiple ? `
+                <span class="absolute bottom-9 left-2.5 bg-black/75 text-vintage-gold text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-sm border border-vintage-gold/50 z-10 shadow">
+                  <i class="fa-solid fa-images mr-1"></i> ${p.images.length} фото
+                </span>
+              ` : ''}
+
+              ${p.video ? `
+                <span class="absolute top-2.5 ${isAdmin ? 'left-20' : 'left-2.5'} bg-black/75 text-vintage-gold text-[10px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-sm border border-vintage-gold/50 flex items-center gap-1 z-10 shadow">
+                  <i class="fa-solid fa-video text-xs"></i> ВІДЕО
+                </span>
+              ` : ''}
+
+              ${p.badge ? `<span class="absolute top-2.5 right-2.5 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow ${p.badge === 'SALE' ? 'bg-red-600' : 'bg-vintage-gold'} z-10">${p.badge}</span>` : ''}
+              <span class="absolute bottom-2.5 left-2.5 bg-vintage-green/90 text-vintage-cream text-[10px] font-medium px-2.5 py-0.5 rounded-full backdrop-blur-sm border border-vintage-gold/40 z-10">Кратність: ${p.multiplicity} шт</span>
+            </div>
+
+            <div class="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-vintage-gold block">${p.category}</span>
+                <h3 class="font-serif font-bold text-vintage-green text-lg mt-1 leading-snug cursor-pointer hover:text-vintage-gold transition ${p.nameStyle || ''}" onclick="openMediaModal(${p.id}, 'photo', 0)">${p.name}</h3>
+                <p class="text-xs text-vintage-green/70 mt-1 line-clamp-2">${p.description || ''}</p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-vintage-border/60 flex items-center justify-between">
+                <div class="flex flex-col">
+                  <span class="text-[11px] font-bold text-amber-800">Опт ціна: <span class="font-serif text-lg font-extrabold text-vintage-green ${pStyle}">${p.wholesalePrice} грн</span></span>
+                  <span class="text-[11px] font-semibold text-gray-600">Роздріб ціна: <span class="font-serif text-base font-bold text-vintage-green ${pStyle}">${p.retailPrice} грн</span></span>
+                </div>
+                <button onclick="addToCart(${p.id})" class="bg-vintage-green text-vintage-cream p-2.5 rounded-xl hover:bg-vintage-greenLight transition shadow border border-vintage-gold" title="В кошик">
+                  <i class="fa-solid fa-cart-plus text-vintage-gold"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTable(productList) {
+      const tbody = document.getElementById("tableBody");
+      if (productList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500 font-serif">Нічого не знайдено</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = productList.map(p => {
+        const mainImg = (p.images && p.images.length > 0) ? p.images[0] : "";
+        const pStyle = p.priceStyle || "";
+        return `
+          <tr class="hover:bg-vintage-cream/60 text-sm transition">
+            <td>
+              <img src="${mainImg}" onclick="openMediaModal(${p.id}, 'photo', 0)" class="w-11 h-11 object-cover rounded-xl border border-vintage-border shadow-sm cursor-pointer hover:scale-105 transition" title="Збільшити фото">
+            </td>
+            <td class="font-bold text-vintage-green">
+              <div class="flex items-center gap-2">
+                <span class="cursor-pointer hover:text-vintage-gold transition ${p.nameStyle || ''}" onclick="openMediaModal(${p.id}, 'photo', 0)">${p.name}</span>
+                ${p.video ? `
+                  <button onclick="openMediaModal(${p.id}, 'video', 0)" class="text-vintage-gold hover:text-vintage-green transition text-xs flex items-center gap-1 bg-amber-100/80 px-2 py-0.5 rounded-full border border-vintage-gold/40 shadow-sm" title="Дивитися відео">
+                    <i class="fa-solid fa-circle-play text-sm text-vintage-gold"></i> <span class="text-[10px] uppercase font-bold">Відео</span>
+                  </button>
+                ` : ''}
+                ${isAdmin ? `<span class="text-xs text-amber-600 ml-1 cursor-pointer" onclick="openEditProductModal(${p.id})">[Ред]</span>` : ''}
+              </div>
+            </td>
+            <td><span class="bg-vintage-cream border border-vintage-border/80 px-2.5 py-1 rounded-full text-xs font-semibold text-vintage-green">${p.category}</span></td>
+            <td class="text-vintage-green/70 font-medium">${p.multiplicity} шт</td>
+            <td class="font-bold text-amber-900 font-serif text-base"><span class="${pStyle}">${p.wholesalePrice} грн</span></td>
+            <td class="font-semibold text-vintage-green font-serif text-base"><span class="${pStyle}">${p.retailPrice} грн</span></td>
+            <td class="text-center">
+              <input type="number" id="qty-${p.id}" value="${p.multiplicity}" step="${p.multiplicity}" min="${p.multiplicity}" class="w-20 border border-vintage-border rounded-lg text-center p-1 font-semibold text-sm bg-vintage-cream">
+            </td>
+            <td class="text-right">
+              <button onclick="addCustomToCart(${p.id})" class="bg-vintage-green text-white px-3.5 py-1.5 rounded-lg hover:bg-vintage-greenLight text-xs font-semibold shadow border border-vintage-gold">
+                <i class="fa-solid fa-plus mr-1 text-vintage-gold"></i> Замовити
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function handleMultiImageUpload(e, index) {
+      if (!isAdmin) return;
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
+        alert('Будь ласка, оберіть файл у форматі JPEG (.jpg або .jpeg)!');
+        e.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const dataUrl = evt.target.result;
+        document.getElementById(`prodImg${index}`).value = dataUrl;
+        updateImagesFromInputs();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateImagesFromInputs() {
+      const container = document.getElementById('adminImagesPreviewList');
+      let html = '';
+      for (let i = 0; i < 5; i++) {
+        const val = document.getElementById(`prodImg${i}`).value.trim();
+        if (val) {
+          html += `<img src="${val}" class="w-16 h-16 object-cover rounded-lg border-2 border-vintage-gold shadow-md">`;
+        }
+      }
+      container.innerHTML = html || '<span class="text-xs text-gray-400 italic">Фото не додано</span>';
+    }
+
+    function handleVideoUpload(e) {
+      if (!isAdmin) return;
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 15 * 1024 * 1024) {
+        alert('Файл відео занадто великий! Будь ласка, оберіть відео розміром до 15 МБ або вкажіть URL-посилання.');
+        e.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const dataUrl = evt.target.result;
+        document.getElementById('prodVideo').value = dataUrl;
+        showVideoPreview(dataUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function showVideoPreview(src) {
+      const preview = document.getElementById('videoPreview');
+      const container = document.getElementById('videoPreviewContainer');
+      if (src && src.trim() !== '') {
+        preview.src = src;
+        container.classList.remove('hidden');
+      } else {
+        preview.src = '';
+        container.classList.add('hidden');
+      }
+    }
+
+    function addToCart(id) {
+      const p = products.find(item => item.id === id);
+      cart[id] = (cart[id] || 0) + p.multiplicity;
+      updateCartUI();
+    }
+
+    function addCustomToCart(id) {
+      const qtyInput = document.getElementById(`qty-${id}`);
+      const qty = parseInt(qtyInput.value) || 0;
+      if (qty > 0) {
+        cart[id] = (cart[id] || 0) + qty;
+        updateCartUI();
+      }
+    }
+
+    function removeFromCart(id) {
+      delete cart[id];
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const count = Object.keys(cart).length;
+      document.getElementById('cartBadge').innerText = count;
+      const container = document.getElementById('cartItems');
+      let total = 0;
+
+      if (count === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-vintage-green/50 font-serif text-base">Ваш кошик порожній</div>`;
+        document.getElementById('cartTotal').innerText = '0 грн';
+        return;
+      }
+
+      container.innerHTML = Object.keys(cart).map(id => {
+        const p = products.find(item => item.id == id);
+        if (!p) return '';
+        const qty = cart[id];
+        const priceToUse = qty >= p.multiplicity ? p.wholesalePrice : p.retailPrice;
+        const sum = priceToUse * qty;
+        total += sum;
+
+        return `
+          <div class="flex items-center justify-between border-b border-vintage-border pb-3">
+            <div>
+              <h4 class="font-bold text-sm text-vintage-green font-serif">${p.name}</h4>
+              <p class="text-xs text-vintage-green/70">${priceToUse} грн x ${qty} шт = <span class="font-bold text-vintage-green">${sum} грн</span></p>
+            </div>
+            <button onclick="removeFromCart(${p.id})" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('cartTotal').innerText = `${total} грн`;
+    }
+
+    function calculateCartTotal() {
+      let total = 0;
+      Object.keys(cart).forEach(id => {
+        const p = products.find(item => item.id == id);
+        if (p) {
+          const qty = cart[id];
+          const priceToUse = qty >= p.multiplicity ? p.wholesalePrice : p.retailPrice;
+          total += priceToUse * qty;
+        }
+      });
+      return total;
+    }
+
+    function checkout() {
+      if (Object.keys(cart).length === 0) return alert('Ваш кошик порожній!');
+      const total = calculateCartTotal();
+      document.getElementById('paymentTotalAmount').innerText = `${total} грн`;
+      closeModal('cartModal');
+      openModal('paymentModal');
+    }
+
+    function copyIBAN() {
+      const ibanText = paymentBankInfo.iban;
+      navigator.clipboard.writeText(ibanText).then(() => {
+        alert(`IBAN скопійовано у буфер обміну:\n${ibanText}`);
+      }).catch(() => {
+        alert(`Реквізити для оплати:\nIBAN: ${paymentBankInfo.iban}\nЄДРПОУ: ${paymentBankInfo.code}\nОтримувач: ${paymentBankInfo.recipient}`);
+      });
+    }
+
+    function onGooglePayLoaded() {
+      if (window.google && google.payments) {
+        paymentsClient = new google.payments.api.PaymentsClient({ environment: 'TEST' });
+      }
+    }
+
+    function triggerGooglePay() {
+      const totalSum = calculateCartTotal();
+      if (totalSum <= 0) {
+        alert('Помилка: кошик порожній!');
+        return;
+      }
+
+      const paymentDataRequest = {
+        apiVersion: 2,
+        apiVersionMinor: 0,
+        allowedPaymentMethods: [{
+          type: 'CARD',
+          parameters: {
+            allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+            allowedCardNetworks: ["MASTERCARD", "VISA"]
+          },
+          tokenizationSpecification: {
+            type: 'PAYMENT_GATEWAY',
+            parameters: {
+              'gateway': 'example',
+              'gatewayMerchantId': 'exampleGatewayMerchantId'
+            }
+          }
+        }],
+        merchantInfo: {
+          merchantId: '12345678901234567890',
+          merchantName: paymentBankInfo.recipient
+        },
+        transactionInfo: {
+          totalPriceStatus: 'FINAL',
+          totalPriceLabel: 'Загальна сума',
+          totalPrice: totalSum.toString(),
+          currencyCode: 'UAH',
+          countryCode: 'UA'
+        }
+      };
+
+      if (paymentsClient) {
+        paymentsClient.loadPaymentData(paymentDataRequest).then(function(paymentData) {
+          alert(`Оплату через Google Pay успішно авторизовано на суму ${totalSum} грн!\n\nКвитанція автоматично формується та надсилається в Telegram.`);
+          sendOrderToTelegramAutomatic();
+        }).catch(function(err) {
+          if (confirm(`Підтвердити оплату замовлення через Google Pay на суму ${totalSum} грн?\n\nОтримувач: ${paymentBankInfo.recipient}\nЄДРПОУ: ${paymentBankInfo.code}\nIBAN: ${paymentBankInfo.iban}`)) {
+            alert(`Оплату ${totalSum} грн зараховано. Надсилаємо квитанцію в Telegram...`);
+            sendOrderToTelegramAutomatic();
+          }
+        });
+      } else {
+        if (confirm(`Підтвердити проведення розрахунку Google Pay на суму ${totalSum} грн?\n\nРеквізити ФОП:\n- Отримувач: ${paymentBankInfo.recipient}\n- ЄДРПОУ: ${paymentBankInfo.code}\n- IBAN: ${paymentBankInfo.iban}`)) {
+          alert(`Оплату успішно проведено! Надсилаємо чек в Telegram...`);
+          sendOrderToTelegramAutomatic();
+        }
+      }
+    }
+
+    function sendOrderToTelegramAutomatic() {
+      let text = `💳 ОПЛАЧЕНО / КВИТАНЦІЯ (Petal &amp; Pearl):%0A`;
+      let total = 0;
+      Object.keys(cart).forEach(id => {
+        const p = products.find(item => item.id == id);
+        if (p) {
+          const qty = cart[id];
+          const priceToUse = qty >= p.multiplicity ? p.wholesalePrice : p.retailPrice;
+          const sum = priceToUse * qty;
+          total += sum;
+          text += `- ${p.name}: ${qty} шт (${sum} грн)%0A`;
+        }
+      });
+      text += `%0A💰 Разом сплачено: ${total} грн%0A`;
+      text += `%0A🏦 Реквізити зарахування (ФОП):%0AОтримувач: ${paymentBankInfo.recipient}%0AКод: ${paymentBankInfo.code}%0AIBAN: ${paymentBankInfo.iban}%0AБанк: ${paymentBankInfo.bank}`;
+      
+      const targetPhone = "380955440167";
+      window.open(`https://t.me/+${targetPhone}?text=${text}`, '_blank');
+      
+      cart = {};
+      updateCartUI();
+      closeModal('paymentModal');
+    }
+
+    function openAddProductModal() {
+      if (!isAdmin) return alert('Доступ заборонено!');
+      document.getElementById('productModalTitle').innerText = "Додати новий товар в асортимент";
+      document.getElementById('editProductId').value = "";
+      document.getElementById('prodName').value = "";
+      document.getElementById('prodNameStyle').value = "";
+      document.getElementById('prodName').className = "w-full border border-vintage-border rounded-lg p-2 text-sm bg-white";
+      document.getElementById('prodDesc').value = "";
+      document.getElementById('prodCategory').value = categoriesList[0] || "Троянди";
+      document.getElementById('prodWholesalePrice').value = "";
+      document.getElementById('prodRetailPrice').value = "";
+      document.getElementById('prodMultiplicity').value = "1";
+      document.getElementById('prodPriceStyle').value = "";
+      
+      for (let i = 0; i < 5; i++) {
+        document.getElementById(`prodImg${i}`).value = "";
+        document.getElementById(`prodImgFile${i}`).value = "";
+      }
+      
+      document.getElementById('prodVideo').value = "";
+      document.getElementById('prodVideoFile').value = "";
+      document.getElementById('prodBadge').value = "";
+      updateImagesFromInputs();
+      showVideoPreview("");
+      updateLivePreview();
+      openModal('productModal');
+    }
+
+    function openEditProductModal(id) {
+      if (!isAdmin) return alert('Доступ заборонено!');
+      const p = products.find(item => item.id === id);
+      if (!p) return;
+      document.getElementById('productModalTitle').innerText = "Редагувати товар / позицію";
+      document.getElementById('editProductId').value = p.id;
+      document.getElementById('prodName').value = p.name;
+      document.getElementById('prodNameStyle').value = p.nameStyle || "";
+      document.getElementById('prodName').className = `w-full border border-vintage-border rounded-lg p-2 text-sm bg-white ${p.nameStyle || ''}`;
+      document.getElementById('prodDesc').value = p.description || "";
+      document.getElementById('prodCategory').value = p.category;
+      document.getElementById('prodWholesalePrice').value = p.wholesalePrice;
+      document.getElementById('prodRetailPrice').value = p.retailPrice;
+      document.getElementById('prodMultiplicity').value = p.multiplicity;
+      document.getElementById('prodPriceStyle').value = p.priceStyle || "";
+      
+      for (let i = 0; i < 5; i++) {
+        document.getElementById(`prodImg${i}`).value = (p.images && p.images[i]) ? p.images[i] : "";
+        document.getElementById(`prodImgFile${i}`).value = "";
+      }
+
+      document.getElementById('prodVideo').value = p.video || "";
+      document.getElementById('prodVideoFile').value = "";
+      document.getElementById('prodBadge').value = p.badge || "";
+      updateImagesFromInputs();
+      showVideoPreview(p.video || "");
+      updateLivePreview();
+      openModal('productModal');
+    }
+
+    function saveProductForm(e) {
+      e.preventDefault();
+      if (!isAdmin) return alert('Доступ заборонено!');
+      const editId = document.getElementById('editProductId').value;
+      const name = sanitizeHTML(document.getElementById('prodName').value.trim());
+      const nameStyle = sanitizeHTML(document.getElementById('prodNameStyle').value.trim());
+      const priceStyle = sanitizeHTML(document.getElementById('prodPriceStyle').value.trim());
+      const description = sanitizeHTML(document.getElementById('prodDesc').value.trim());
+      const category = sanitizeHTML(document.getElementById('prodCategory').value.trim());
+      const wholesalePrice = parseFloat(document.getElementById('prodWholesalePrice').value);
+      const retailPrice = parseFloat(document.getElementById('prodRetailPrice').value);
+      const multiplicity = parseInt(document.getElementById('prodMultiplicity').value);
+      
+      let imagesArr = [];
+      for (let i = 0; i < 5; i++) {
+        const val = document.getElementById(`prodImg${i}`).value.trim();
+        if (val) imagesArr.push(val);
+      }
+      if (imagesArr.length === 0) {
+        imagesArr = ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400"];
+      }
+
+      const video = document.getElementById('prodVideo').value.trim();
+      const badge = sanitizeHTML(document.getElementById('prodBadge').value);
+
+      if (category && !categoriesList.includes(category)) {
+        categoriesList.push(category);
+        saveCategoriesState();
+      }
+
+      if (editId) {
+        const index = products.findIndex(p => p.id == editId);
+        if (index !== -1) products[index] = { id: parseInt(editId), name, nameStyle, priceStyle, description, category, wholesalePrice, retailPrice, multiplicity, images: imagesArr, video, badge };
+      } else {
+        const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+        products.unshift({ id: newId, name, nameStyle, priceStyle, description, category, wholesalePrice, retailPrice, multiplicity, images: imagesArr, video, badge });
+      }
+
+      saveProductsState();
+      filterProducts();
+      closeModal('productModal');
+    }
+
+    function deleteProduct(id) {
+      if (!isAdmin) return alert('Доступ заборонено!');
+      if (confirm('Ви дійсно бажаєте видалити цей товар з асортименту?')) {
+        products = products.filter(p => p.id !== id);
+        saveProductsState();
+        filterProducts();
+      }
+    }
+
+    function resetToDefaults() {
+      if (!isAdmin) return alert('Доступ заборонено!');
+      if (confirm('Скинути всі налаштування та повернути початковий каталог?')) {
+        localStorage.clear();
+        location.reload();
+      }
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  </script>
+</body>
+</html>
