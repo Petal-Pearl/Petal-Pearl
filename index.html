@@ -1288,7 +1288,7 @@
       if (saveStatusTimer) clearTimeout(saveStatusTimer);
       saveStatusTimer = null;
       if (!persistent && state !== "loading") {
-        saveStatusTimer = setTimeout(() => toast.classList.remove("show"), state === "error" ? 9000 : 5000);
+        saveStatusTimer = setTimeout(() => toast.classList.remove("show"), state === "error" ? 12000 : 8000);
       }
     }
 
