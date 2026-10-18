@@ -1012,6 +1012,7 @@
     let activeMediaProduct = null;
     let activeMediaIndex = 0;
     let isMusicPlaying = false;
+    let musicUserDisabled = false;
     const SUPABASE_URL = "https://hdlkpmsnsrmwftmjnusl.supabase.co";
     const SUPABASE_KEY = "sb_publishable_vWlCD38s9joTjXHuWYQslw__jpNGtwl";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1064,14 +1065,14 @@
       // Саму кнопку керування не перехоплюємо, щоб вона могла вимикати звук.
       document.addEventListener('pointerdown', (event) => {
         if (event.target.closest && event.target.closest('#musicToggleBtn')) return;
-        startBackgroundMusic();
+        if (!musicUserDisabled) startBackgroundMusic();
       }, { capture: true, passive: true });
 
       // Підтримуємо запуск клавіатурою, не заважаючи кнопці перемикання.
       document.addEventListener('keydown', (event) => {
         if (event.target.closest && event.target.closest('#musicToggleBtn')) return;
         if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
-        startBackgroundMusic();
+        if (!musicUserDisabled) startBackgroundMusic();
       }, true);
     };
 
@@ -1102,10 +1103,12 @@
       if (!audio) return;
 
       if (!audio.paused && !audio.ended) {
+        musicUserDisabled = true;
         audio.pause();
         isMusicPlaying = false;
         updateMusicButtonUI();
       } else {
+        musicUserDisabled = false;
         startBackgroundMusic();
       }
     }
