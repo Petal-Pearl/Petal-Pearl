@@ -2028,14 +2028,21 @@
       activeMediaIndex = (idx + activeMediaProduct.images.length) % activeMediaProduct.images.length;
       switchMediaMode('photo');
       updateMediaModalView();
+      const viewer = document.getElementById('mediaFullscreenViewer');
+      if (viewer && !viewer.classList.contains('hidden')) {
+        const fullImg = document.getElementById('mediaFullscreenImg');
+        if (fullImg) fullImg.src = activeMediaProduct.images[activeMediaIndex];
+        const counter = document.getElementById('mediaFullscreenCounter');
+        if (counter) counter.textContent = `${activeMediaIndex + 1} / ${activeMediaProduct.images.length}`;
+      }
     }
 
-    // Mobile gallery swipe: horizontal finger movement changes the active product photo.
+    // Swipe on touch screens and click-drag with the mouse on desktop.
     (function enableMediaGallerySwipe() {
       const gallery = document.getElementById('mediaModalImg')?.parentElement;
       if (!gallery || gallery.dataset.swipeReady === '1') return;
       gallery.dataset.swipeReady = '1';
-      let startX = 0, startY = 0, tracking = false;
+      let startX = 0, startY = 0, tracking = false, mouseDrag = false, moved = false;
       gallery.addEventListener('touchstart', (event) => {
         if (!activeMediaProduct || activeMediaProduct.images.length < 2 || !event.touches || event.touches.length !== 1) return;
         startX = event.touches[0].clientX;
@@ -2051,7 +2058,63 @@
         setMediaImageIndex(activeMediaIndex + (dx < 0 ? 1 : -1));
       }, { passive: true });
       gallery.addEventListener('touchcancel', () => { tracking = false; }, { passive: true });
+
+      gallery.style.cursor = 'grab';
+      gallery.style.userSelect = 'none';
+      gallery.addEventListener('dragstart', event => event.preventDefault());
+      gallery.addEventListener('pointerdown', event => {
+        if (event.pointerType !== 'mouse' || event.button !== 0 || !activeMediaProduct || activeMediaProduct.images.length < 2) return;
+        startX = event.clientX;
+        startY = event.clientY;
+        tracking = true;
+        mouseDrag = true;
+        moved = false;
+        gallery.style.cursor = 'grabbing';
+      });
+      gallery.addEventListener('pointermove', event => {
+        if (!tracking || !mouseDrag) return;
+        if (Math.abs(event.clientX - startX) > 6) moved = true;
+      });
+      const finishMouseDrag = event => {
+        if (!tracking || !mouseDrag) return;
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+        tracking = false;
+        mouseDrag = false;
+        gallery.style.cursor = 'grab';
+        if (Math.abs(dx) >= 40 && Math.abs(dx) >= Math.abs(dy) * 1.25) {
+          if (moved) {
+            const img = document.getElementById('mediaModalImg');
+            if (img) img.dataset.suppressNextClick = '1';
+          }
+          setMediaImageIndex(activeMediaIndex + (dx < 0 ? 1 : -1));
+        }
+      };
+      gallery.addEventListener('pointerup', finishMouseDrag);
+      gallery.addEventListener('pointercancel', () => { tracking = false; mouseDrag = false; gallery.style.cursor = 'grab'; });
+      const mainImage = document.getElementById('mediaModalImg');
+      if (mainImage) mainImage.addEventListener('click', event => {
+        if (mainImage.dataset.suppressNextClick === '1') {
+          delete mainImage.dataset.suppressNextClick;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }, true);
     })();
+
+    // Keyboard left/right arrows work in the product dialog and full-screen viewer.
+    document.addEventListener('keydown', event => {
+      if (!activeMediaProduct || activeMediaProduct.images.length < 2 || event.altKey || event.ctrlKey || event.metaKey) return;
+      const viewer = document.getElementById('mediaFullscreenViewer');
+      const modal = document.getElementById('mediaModal');
+      const viewerOpen = viewer && !viewer.classList.contains('hidden');
+      const modalOpen = modal && !modal.classList.contains('hidden');
+      if (!viewerOpen && !modalOpen) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) return;
+      if (event.key === 'ArrowRight') { event.preventDefault(); setMediaImageIndex(activeMediaIndex + 1); }
+      else if (event.key === 'ArrowLeft') { event.preventDefault(); setMediaImageIndex(activeMediaIndex - 1); }
+      else return;
+    });
 
     function switchMediaMode(mode) {
       const imgEl = document.getElementById('mediaModalImg');
