@@ -2174,11 +2174,29 @@
         return matchesCategory && matchesSearch;
       });
 
-      if (sortBy === 'wholesale-asc') filtered.sort((a,b) => a.wholesalePrice - b.wholesalePrice);
-      if (sortBy === 'wholesale-desc') filtered.sort((a,b) => b.wholesalePrice - a.wholesalePrice);
-      if (sortBy === 'retail-asc') filtered.sort((a,b) => a.retailPrice - b.retailPrice);
-      if (sortBy === 'retail-desc') filtered.sort((a,b) => b.retailPrice - a.retailPrice);
-      if (sortBy === 'name') filtered.sort((a,b) => a.name.localeCompare(b.name));
+      // Badge priority always comes first in every category:
+      // NEW -> SALE -> TOP -> products without a badge.
+      // The chosen sort order applies only within the same badge group.
+      const badgePriority = badge => {
+        const normalized = String(badge || "").trim().toUpperCase();
+        if (normalized === "NEW") return 0;
+        if (normalized === "SALE") return 1;
+        if (normalized === "TOP") return 2;
+        return 3;
+      };
+      const compareBySelectedSort = (a, b) => {
+        if (sortBy === 'wholesale-asc') return Number(a.wholesalePrice || 0) - Number(b.wholesalePrice || 0);
+        if (sortBy === 'wholesale-desc') return Number(b.wholesalePrice || 0) - Number(a.wholesalePrice || 0);
+        if (sortBy === 'retail-asc') return Number(a.retailPrice || 0) - Number(b.retailPrice || 0);
+        if (sortBy === 'retail-desc') return Number(b.retailPrice || 0) - Number(a.retailPrice || 0);
+        if (sortBy === 'name') return String(a.name || "").localeCompare(String(b.name || ""));
+        return 0;
+      };
+      filtered.sort((a, b) => {
+        const priorityDifference = badgePriority(a.badge) - badgePriority(b.badge);
+        if (priorityDifference !== 0) return priorityDifference;
+        return compareBySelectedSort(a, b);
+      });
 
       document.getElementById("productCount").innerText = `Знайдено позицій: ${filtered.length}`;
       renderGrid(filtered);
