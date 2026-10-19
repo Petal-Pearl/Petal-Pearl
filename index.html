@@ -444,6 +444,20 @@
         </h4>
         <div id="mediaModalDescription" class="text-xs text-vintage-green/90 leading-relaxed font-sans"></div>
       </div>
+      <div id="mediaModalOrderPanel" class="mt-4 p-4 rounded-xl border border-vintage-gold bg-white shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div class="font-bold text-vintage-green">Замовити цей товар</div>
+          <div id="mediaModalPrice" class="font-serif text-xl font-extrabold text-vintage-green"></div>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <label for="mediaModalQty" class="font-bold text-vintage-green text-sm">Кількість:</label>
+          <input id="mediaModalQty" type="number" min="1" step="1" value="1" class="w-24 border border-vintage-border rounded-xl p-3 text-center font-bold text-base bg-white">
+          <button id="mediaModalAddButton" type="button" onclick="addMediaModalToCart()" class="flex-1 min-w-[150px] bg-vintage-green text-vintage-cream font-bold py-3 px-4 rounded-xl border border-vintage-gold shadow-md flex items-center justify-center gap-2">
+            <i class="fa-solid fa-cart-plus text-vintage-gold"></i> У кошик
+          </button>
+        </div>
+        <p id="mediaModalCartMessage" class="hidden text-sm text-green-700 font-bold mt-2">Товар додано до кошика.</p>
+      </div>
     </div>
   </div>
 
@@ -1888,6 +1902,12 @@
       activeMediaIndex = imgIndex >= 0 && imgIndex < p.images.length ? imgIndex : 0;
 
       document.getElementById('mediaModalTitle').innerHTML = `<span class="${p.nameStyle || ''}">${p.name}</span>`;
+      const modalPrice = document.getElementById('mediaModalPrice');
+      if (modalPrice) modalPrice.textContent = `Опт: ${p.wholesalePrice} грн/шт · Роздріб: ${p.retailPrice} грн/шт`;
+      const modalQty = document.getElementById('mediaModalQty');
+      if (modalQty) modalQty.value = "1";
+      const cartMsg = document.getElementById('mediaModalCartMessage');
+      if (cartMsg) cartMsg.classList.add('hidden');
       const availabilityInfo = p.availability === 'preorder'
         ? '<div class="flex flex-wrap gap-2 mt-3"><span class="inline-flex items-center gap-2 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 px-3 py-2 text-xs font-bold"><i class="fa-solid fa-clock"></i> Передзамовлення — доставка через 5–7 днів</span><span class="inline-flex items-center gap-2 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 px-3 py-2 text-xs font-bold"><i class="fa-solid fa-truck"></i> Доставка доступна</span></div>'
         : '<div class="flex flex-wrap gap-2 mt-3"><span class="inline-flex items-center gap-2 rounded-lg bg-green-100 border border-green-300 text-green-800 px-3 py-2 text-xs font-bold"><i class="fa-solid fa-circle-check"></i> Є в наявності</span><span class="inline-flex items-center gap-2 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 px-3 py-2 text-xs font-bold"><i class="fa-solid fa-truck"></i> Доставка доступна</span></div>';
@@ -1911,6 +1931,22 @@
       updateMediaModalView();
       switchMediaMode(defaultMode);
       openModal('mediaModal');
+    }
+
+    function addMediaModalToCart() {
+      if (!activeMediaProduct) return;
+      const qtyInput = document.getElementById('mediaModalQty');
+      const qty = Math.floor(Number(qtyInput?.value));
+      if (!Number.isFinite(qty) || qty < 1) {
+        alert("Вкажіть кількість від 1 штуки.");
+        if (qtyInput) { qtyInput.focus(); qtyInput.value = "1"; }
+        return;
+      }
+      cart[activeMediaProduct.id] = (cart[activeMediaProduct.id] || 0) + qty;
+      updateCartUI();
+      const msg = document.getElementById('mediaModalCartMessage');
+      if (msg) { msg.textContent = "Товар додано до кошика."; msg.classList.remove('hidden'); }
+      if (qtyInput) qtyInput.value = "1";
     }
 
     function updateMediaModalView() {
