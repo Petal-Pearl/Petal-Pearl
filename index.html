@@ -901,13 +901,8 @@
               <button type="button" onclick="formatProdField('price', 'italic')" class="px-1.5 py-0.5 text-xs italic hover:bg-vintage-gold hover:text-white rounded" title="Курсив"><i>I</i></button>
               <button type="button" onclick="formatProdField('price', 'underline')" class="px-1.5 py-0.5 text-xs underline hover:bg-vintage-gold hover:text-white rounded" title="Підкреслений"><u>U</u></button>
               <span class="text-gray-300">|</span>
-              <select onchange="formatProdField('price', 'size', this.value)" class="text-[11px] bg-white border border-vintage-border rounded px-1 py-0.5">
-                <option value="">Розмір ціни</option>
-                <option value="text-sm">Малий</option>
-                <option value="text-base">Звичайний</option>
-                <option value="text-lg">Великий</option>
-                <option value="text-xl">Дуже великий</option>
-              </select>
+              <label class="text-[11px] flex items-center gap-1">Розмір, px <input type="number" id="prodPriceFontSize" min="1" max="50" value="16" oninput="updateLivePreview()" class="w-16 text-sm bg-white border border-vintage-border rounded px-1 py-1"></label>
+              <select id="prodPriceFontFamily" onchange="updateLivePreview()" class="text-[11px] bg-white border border-vintage-border rounded px-1 py-1" title="Шрифт ціни"><option value="inherit">Шрифт сайту</option><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="'Times New Roman', serif">Times New Roman</option><option value="Verdana, sans-serif">Verdana</option><option value="'Trebuchet MS', sans-serif">Trebuchet MS</option><option value="Montserrat, sans-serif">Montserrat</option></select>
               <select onchange="formatProdField('price', 'color', this.value)" class="text-[11px] bg-white border border-vintage-border rounded px-1 py-0.5">
                 <option value="">Колір ціни</option>
                 <option value="text-vintage-green">Темно-зелений</option>
@@ -1848,6 +1843,8 @@
       const wholesaleVal = document.getElementById('prodWholesalePrice').value || "38";
       const retailVal = document.getElementById('prodRetailPrice').value || "50";
       const priceStyle = document.getElementById('prodPriceStyle').value;
+      const priceFontSize = Math.min(50, Math.max(1, Number(document.getElementById('prodPriceFontSize')?.value) || 16));
+      const priceFontFamily = document.getElementById('prodPriceFontFamily')?.value || 'inherit';
 
       const prevName = document.getElementById('previewName');
       prevName.className = `font-serif text-base font-bold block ${nameStyle}`;
@@ -1855,10 +1852,11 @@
 
       const prevWholesale = document.getElementById('previewWholesale');
       prevWholesale.className = `font-serif font-bold ${priceStyle}`;
+      prevWholesale.style.fontSize = priceFontSize + 'px'; prevWholesale.style.fontFamily = priceFontFamily;
       prevWholesale.innerText = `${wholesaleVal} грн`;
-
       const prevRetail = document.getElementById('previewRetail');
       prevRetail.className = `font-serif font-bold ${priceStyle}`;
+      prevRetail.style.fontSize = priceFontSize + 'px'; prevRetail.style.fontFamily = priceFontFamily;
       prevRetail.innerText = `${retailVal} грн`;
     }
 
@@ -2333,8 +2331,8 @@
               </div>
               <div class="mt-4 pt-3 border-t border-vintage-border/60">
                 <div class="flex flex-col mb-3">
-                  <span class="text-[11px] font-bold text-amber-800">Опт ціна: <span class="font-serif text-lg font-extrabold text-vintage-green ${pStyle}">${p.wholesalePrice} грн/шт</span></span>
-                  <span class="text-[11px] font-semibold text-gray-600">Роздріб ціна: <span class="font-serif text-base font-bold text-vintage-green ${pStyle}">${p.retailPrice} грн/шт</span></span>
+                  <span class="text-[11px] font-bold text-amber-800">Опт ціна: <span class="font-serif font-extrabold text-vintage-green ${pStyle}" style="font-size:${Math.min(50,Math.max(1,Number(p.priceFontSize)||18))}px;font-family:${p.priceFontFamily || 'inherit'}">${p.wholesalePrice} грн/шт</span></span>
+                  <span class="text-[11px] font-semibold text-gray-600">Роздріб ціна: <span class="font-serif font-bold text-vintage-green ${pStyle}" style="font-size:${Math.min(50,Math.max(1,Number(p.priceFontSize)||16))}px;font-family:${p.priceFontFamily || 'inherit'}">${p.retailPrice} грн/шт</span></span>
                   <span class="text-[10px] text-vintage-green/70 mt-1">Роздріб — до 10 шт включно; опт — від 11 шт</span>
                 </div>
                 <div class="flex items-center gap-2">
@@ -2802,6 +2800,8 @@
       document.getElementById('prodRetailPrice').value = "";
       document.getElementById('prodMultiplicity').value = "1";
       document.getElementById('prodPriceStyle').value = "";
+      document.getElementById('prodPriceFontSize').value = "16";
+      document.getElementById('prodPriceFontFamily').value = "inherit";
       
       for (let i = 0; i < 5; i++) {
         document.getElementById(`prodImg${i}`).value = "";
@@ -2836,6 +2836,8 @@
       document.getElementById('prodRetailPrice').value = p.retailPrice;
       document.getElementById('prodMultiplicity').value = p.multiplicity;
       document.getElementById('prodPriceStyle').value = p.priceStyle || "";
+      document.getElementById('prodPriceFontSize').value = Math.min(50, Math.max(1, Number(p.priceFontSize) || 16));
+      document.getElementById('prodPriceFontFamily').value = p.priceFontFamily || "inherit";
       
       for (let i = 0; i < 5; i++) {
         document.getElementById(`prodImg${i}`).value = (p.images && p.images[i]) ? p.images[i] : "";
@@ -2864,6 +2866,9 @@
       const name = sanitizeHTML(document.getElementById('prodName').value.trim());
       const nameStyle = sanitizeHTML(document.getElementById('prodNameStyle').value.trim());
       const priceStyle = sanitizeHTML(document.getElementById('prodPriceStyle').value.trim());
+      const priceFontSize = Math.min(50, Math.max(1, Number(document.getElementById('prodPriceFontSize').value) || 16));
+      const allowedPriceFonts = ['inherit','Arial, sans-serif','Georgia, serif',"'Times New Roman', serif",'Verdana, sans-serif',"'Trebuchet MS', sans-serif",'Montserrat, sans-serif'];
+      const priceFontFamily = allowedPriceFonts.includes(document.getElementById('prodPriceFontFamily').value) ? document.getElementById('prodPriceFontFamily').value : 'inherit';
       const description = sanitizeHTML(document.getElementById('prodDesc').value.trim());
       const category = sanitizeHTML(document.getElementById('prodCategory').value.trim());
       const wholesalePrice = parseFloat(document.getElementById('prodWholesalePrice').value);
@@ -2888,10 +2893,10 @@
 
       if (editId) {
         const index = products.findIndex(p => p.id == editId);
-        if (index !== -1) products[index] = { id: parseInt(editId), name, nameStyle, priceStyle, description, category, wholesalePrice, retailPrice, multiplicity, images: imagesArr, video, badge, availability };
+        if (index !== -1) products[index] = { ...products[index], id: parseInt(editId), name, nameStyle, priceStyle, priceFontSize, priceFontFamily, description, category, wholesalePrice, retailPrice, multiplicity, images: imagesArr, video, badge, availability };
       } else {
         const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
-        products.unshift({ id: newId, name, nameStyle, priceStyle, description, category, wholesalePrice, retailPrice, multiplicity, images: imagesArr, video, badge });
+        products.unshift({ id: newId, name, nameStyle, priceStyle, priceFontSize, priceFontFamily, description, category, wholesalePrice, retailPrice, multiplicity, images: imagesArr, video, badge, availability });
       }
 
       const saved = await saveProductsState();
