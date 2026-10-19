@@ -410,8 +410,8 @@
   <!-- МОДАЛЬНІ ВІКНА -->
 
   <!-- Детальний перегляд товару (Галерея, Опис та Відео) -->
-  <div id="mediaModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-vintage-cream rounded-2xl w-full max-w-3xl p-5 shadow-2xl relative border-2 border-vintage-gold flex flex-col max-h-[95vh] overflow-y-auto">
+  <div id="mediaModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-vintage-cream rounded-2xl w-full max-w-3xl p-3 sm:p-5 shadow-2xl relative border-2 border-vintage-gold flex flex-col max-h-[94dvh] overflow-y-auto overscroll-contain">
       <button onclick="closeMediaModal()" class="absolute top-3 right-3 bg-vintage-gold text-white rounded-full w-9 h-9 flex items-center justify-center text-xl shadow-lg hover:bg-vintage-goldHover transition z-20">&times;</button>
       
       <div class="flex flex-wrap justify-between items-center border-b border-vintage-border pb-3 mb-3 gap-2">
@@ -435,7 +435,7 @@
       </div>
 
       <!-- Мініатюри галереї фото у модальному вікні -->
-      <div id="mediaThumbnailsContainer" class="flex items-center justify-center gap-2 pt-3 overflow-x-auto"></div>
+      <div id="mediaThumbnailsContainer" class="flex flex-nowrap items-center justify-start sm:justify-center gap-2 pt-3 pb-2 overflow-x-auto overscroll-x-contain touch-pan-x shrink-0 w-full" style="-webkit-overflow-scrolling:touch; scrollbar-width:thin;"></div>
 
       <!-- Блок опису товару в модалці -->
       <div class="mt-4 bg-white/90 p-4 rounded-xl border border-vintage-border shadow-sm">
@@ -1958,7 +1958,7 @@
       const thumbsContainer = document.getElementById('mediaThumbnailsContainer');
       if (activeMediaProduct.images.length > 1) {
         thumbsContainer.innerHTML = activeMediaProduct.images.map((imgUrl, idx) => `
-          <img src="${imgUrl}" onclick="setMediaImageIndex(${idx})" class="w-14 h-14 object-cover rounded-lg border-2 ${idx === activeMediaIndex ? 'border-vintage-gold scale-105 shadow-md' : 'border-vintage-border/70 opacity-70 hover:opacity-100'} cursor-pointer transition">
+          <img src="${imgUrl}" onclick="setMediaImageIndex(${idx})" class="w-16 h-16 min-w-[4rem] shrink-0 object-cover rounded-lg border-2 ${idx === activeMediaIndex ? 'border-vintage-gold scale-105 shadow-md opacity-100' : 'border-vintage-border/70 opacity-80 hover:opacity-100'} cursor-pointer transition touch-manipulation">
         `).join('');
         thumbsContainer.classList.remove('hidden');
       } else {
