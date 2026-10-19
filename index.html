@@ -115,11 +115,8 @@
     <div><div id="saveStatusTitle" class="font-bold">Збереження…</div><div id="saveStatusMessage">Зачекайте, будь ласка.</div></div>
   </div>
 
-  <!-- Аудіоплеєр для фонової музики по колу -->
-  <audio id="bgAudio" loop preload="auto">
-    <source id="bgAudioSource" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-    Ваш браузер не підтримує аудіо елемент.
-  </audio>
+  <!-- Аудіоплеєр залишено без вбудованого треку: стара музика не завантажується і не запускається під час відкриття сайту. -->
+  <audio id="bgAudio" loop preload="none"></audio>
 
   <!-- Шапка сайту -->
   <header class="bg-white/90 backdrop-blur-md border-b border-vintage-border sticky top-0 z-40 shadow-sm">
@@ -1121,22 +1118,7 @@
         console.error('Petal & Pearl: audio file could not be loaded.');
       });
 
-      // Пробуємо запустити музику одразу. Браузер може вимагати дію користувача.
-      startBackgroundMusic();
-
-      // Перший клік або дотик у будь-якому місці сайту запускає музику.
-      // Саму кнопку керування не перехоплюємо, щоб вона могла вимикати звук.
-      document.addEventListener('pointerdown', (event) => {
-        if (event.target.closest && event.target.closest('#musicToggleBtn')) return;
-        if (!musicUserDisabled) startBackgroundMusic();
-      }, { capture: true, passive: true });
-
-      // Підтримуємо запуск клавіатурою, не заважаючи кнопці перемикання.
-      document.addEventListener('keydown', (event) => {
-        if (event.target.closest && event.target.closest('#musicToggleBtn')) return;
-        if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
-        if (!musicUserDisabled) startBackgroundMusic();
-      }, true);
+      // Фонова музика не запускається автоматично. Вбудований старий трек видалено.
     };
 
     function startBackgroundMusic() {
