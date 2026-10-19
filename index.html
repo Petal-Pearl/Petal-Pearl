@@ -113,6 +113,37 @@
     #saveStatusToast[data-state="loading"] { background: #4b5563; }
     #saveStatusToast[data-state="success"] { background: #166534; }
     #saveStatusToast[data-state="error"] { background: #b91c1c; }
+    /* Адміністративне глобальне оформлення */
+    :root {
+      --pp-global-font: 'Montserrat', sans-serif;
+      --pp-global-size: 16px;
+      --pp-global-color: #243328;
+      --pp-window-bg: #f5efe4;
+      --pp-hero-bg: #f5efe4;
+      --pp-brand-size: 34px;
+      --pp-subtitle-size: 18px;
+      --pp-hero-title-size: 48px;
+      --pp-hero-desc-size: 16px;
+      --pp-hero-badge-size: 12px;
+      --pp-brand-color: #243328;
+      --pp-subtitle-color: #80653b;
+      --pp-hero-title-color: #243328;
+      --pp-hero-desc-color: #243328;
+      --pp-hero-badge-color: #80653b;
+    }
+    body { font-family: var(--pp-global-font); font-size: var(--pp-global-size); color: var(--pp-global-color); }
+    #siteTitleDisplay { font-size: var(--pp-brand-size) !important; color: var(--pp-brand-color) !important; line-height: 1.1; }
+    #siteSubtitleDisplay { font-size: var(--pp-subtitle-size) !important; color: var(--pp-subtitle-color) !important; line-height: 1.25; }
+    #heroTitleDisplay { font-size: var(--pp-hero-title-size) !important; color: var(--pp-hero-title-color) !important; }
+    #heroDescDisplay { font-size: var(--pp-hero-desc-size) !important; color: var(--pp-hero-desc-color) !important; }
+    #heroBadgeDisplay { font-size: var(--pp-hero-badge-size) !important; color: var(--pp-hero-badge-color) !important; }
+    .hero-banner-vintage { background-color: var(--pp-hero-bg); }
+    .vintage-card-frame { background-color: var(--pp-window-bg); }
+    @media (max-width: 640px) {
+      #siteTitleDisplay { font-size: clamp(22px, calc(var(--pp-brand-size) * .78), 36px) !important; }
+      #siteSubtitleDisplay { font-size: clamp(12px, calc(var(--pp-subtitle-size) * .82), 20px) !important; }
+      #heroTitleDisplay { font-size: clamp(28px, calc(var(--pp-hero-title-size) * .72), 42px) !important; }
+    }
     #saveStatusToast .save-status-icon { font-size: 18px; line-height: 1.2; font-weight: 700; }
   </style>
 </head>
@@ -670,6 +701,34 @@
           <textarea id="editHeroDesc" rows="3" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white"></textarea>
         </div>
 
+        <hr class="border-vintage-border">
+        <section class="bg-white/80 border border-vintage-border rounded-xl p-3 space-y-3">
+          <h4 class="font-bold text-sm text-vintage-green"><i class="fa-solid fa-wand-magic-sparkles mr-1 text-vintage-gold"></i> Розширене оформлення сайту</h4>
+          <p class="text-xs text-gray-600">Налаштування зберігаються для всіх відвідувачів. Зміни розміру автоматично адаптуються для телефона.</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-xs font-bold mb-1">Розмір назви магазину, px</label><input type="number" id="styleBrandSize" min="20" max="64" value="34" class="w-full border rounded-lg p-2 text-sm"></div>
+            <div><label class="block text-xs font-bold mb-1">Розмір підзаголовка, px</label><input type="number" id="styleSubtitleSize" min="10" max="36" value="18" class="w-full border rounded-lg p-2 text-sm"></div>
+            <div><label class="block text-xs font-bold mb-1">Заголовок банера, px</label><input type="number" id="styleHeroTitleSize" min="24" max="80" value="48" class="w-full border rounded-lg p-2 text-sm"></div>
+            <div><label class="block text-xs font-bold mb-1">Опис банера, px</label><input type="number" id="styleHeroDescSize" min="12" max="32" value="16" class="w-full border rounded-lg p-2 text-sm"></div>
+            <div><label class="block text-xs font-bold mb-1">Верхній текст банера, px</label><input type="number" id="styleHeroBadgeSize" min="10" max="24" value="12" class="w-full border rounded-lg p-2 text-sm"></div>
+            <div><label class="block text-xs font-bold mb-1">Базовий розмір тексту, px</label><input type="number" id="styleGlobalSize" min="12" max="22" value="16" class="w-full border rounded-lg p-2 text-sm"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-xs font-bold mb-1">Шрифт сайту</label><select id="styleGlobalFont" class="w-full border rounded-lg p-2 text-sm"><option value="'Montserrat', sans-serif">Montserrat</option><option value="'Cormorant Garamond', serif">Cormorant Garamond</option><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="'Trebuchet MS', sans-serif">Trebuchet MS</option></select></div>
+            <div><label class="block text-xs font-bold mb-1">Колір основного тексту</label><input type="color" id="styleGlobalColor" value="#243328" class="w-full h-10 border rounded-lg p-1"></div>
+            <div><label class="block text-xs font-bold mb-1">Колір назви магазину</label><input type="color" id="styleBrandColor" value="#243328" class="w-full h-10 border rounded-lg p-1"></div>
+            <div><label class="block text-xs font-bold mb-1">Колір підзаголовка</label><input type="color" id="styleSubtitleColor" value="#80653b" class="w-full h-10 border rounded-lg p-1"></div>
+            <div><label class="block text-xs font-bold mb-1">Колір заголовка банера</label><input type="color" id="styleHeroTitleColor" value="#243328" class="w-full h-10 border rounded-lg p-1"></div>
+            <div><label class="block text-xs font-bold mb-1">Колір опису банера</label><input type="color" id="styleHeroDescColor" value="#243328" class="w-full h-10 border rounded-lg p-1"></div>
+            <div><label class="block text-xs font-bold mb-1">Колір верхнього тексту</label><input type="color" id="styleHeroBadgeColor" value="#80653b" class="w-full h-10 border rounded-lg p-1"></div>
+            <div><label class="block text-xs font-bold mb-1">Фон вікон / карток</label><input type="color" id="styleWindowBg" value="#f5efe4" class="w-full h-10 border rounded-lg p-1"></div>
+            <div><label class="block text-xs font-bold mb-1">Фон банера</label><input type="color" id="styleHeroBg" value="#f5efe4" class="w-full h-10 border rounded-lg p-1"></div>
+          </div>
+          <div><label class="block text-xs font-bold mb-1">Фонове зображення банера (URL, необов'язково)</label><input type="url" id="styleHeroBgUrl" placeholder="https://..." class="w-full border rounded-lg p-2 text-sm"></div>
+          <button type="button" onclick="previewSiteStyles()" class="px-3 py-2 text-xs rounded-lg border border-vintage-gold text-vintage-green font-bold">Переглянути зміни</button>
+          <p class="text-[11px] text-gray-500">Щоб зберегти оформлення, натисніть «Зберегти шапку» внизу форми.</p>
+        </section>
+
         <div class="flex justify-end space-x-3 pt-3">
           <button type="button" onclick="closeModal('headerModal')" class="px-4 py-2 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Скасувати</button>
           <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-vintage-green rounded-lg hover:bg-vintage-greenLight shadow">Зберегти шапку</button>
@@ -1050,7 +1109,8 @@
       musicUrl: "https://hdlkpmsnsrmwftmjnusl.supabase.co/storage/v1/object/public/music-files/music/1792318413435-muzika-relaks_-_muzika-relaks__z3.fm_.mp3",
       heroBadge: "Повний асортимент гуртового склада",
       heroTitle: "Пелюстки краси та перлини вишуканості",
-      heroDesc: "Ласкаво просимо до вишуканої квіткової крамниці «Petal & Pearl». У нас зібрано повний асортимент зрізаних троянд, хризантем, еустом, горшкових рослин, декору та витонченої фурнітури в старовинному класичному стилі."
+      heroDesc: "Ласкаво просимо до вишуканої квіткової крамниці «Petal & Pearl». У нас зібрано повний асортимент зрізаних троянд, хризантем, еустом, горшкових рослин, декору та витонченої фурнітури в старовинному класичному стилі.",
+      siteStyles: { globalFont: "'Montserrat', sans-serif", globalSize: 16, globalColor: "#243328", windowBg: "#f5efe4", heroBg: "#f5efe4", heroBgUrl: "", brandSize: 34, subtitleSize: 18, heroTitleSize: 48, heroDescSize: 16, heroBadgeSize: 12, brandColor: "#243328", subtitleColor: "#80653b", heroTitleColor: "#243328", heroDescColor: "#243328", heroBadgeColor: "#80653b" }
     };
 
     let footerData = {
@@ -1323,6 +1383,56 @@
       document.getElementById('heroBadgeDisplay').innerHTML = `<i class="fa-solid fa-feather-pointed"></i> ${headerData.heroBadge}`;
       document.getElementById('heroTitleDisplay').innerText = headerData.heroTitle;
       document.getElementById('heroDescDisplay').innerText = headerData.heroDesc;
+      applySiteStyles();
+    }
+
+    function getSiteStylesFromForm() {
+      const val = (id, fallback) => document.getElementById(id)?.value ?? fallback;
+      return {
+        globalFont: val('styleGlobalFont', "'Montserrat', sans-serif"),
+        globalSize: Math.min(22, Math.max(12, Number(val('styleGlobalSize', 16)) || 16)),
+        globalColor: val('styleGlobalColor', '#243328'),
+        windowBg: val('styleWindowBg', '#f5efe4'),
+        heroBg: val('styleHeroBg', '#f5efe4'),
+        heroBgUrl: val('styleHeroBgUrl', '').trim(),
+        brandSize: Math.min(64, Math.max(20, Number(val('styleBrandSize', 34)) || 34)),
+        subtitleSize: Math.min(36, Math.max(10, Number(val('styleSubtitleSize', 18)) || 18)),
+        heroTitleSize: Math.min(80, Math.max(24, Number(val('styleHeroTitleSize', 48)) || 48)),
+        heroDescSize: Math.min(32, Math.max(12, Number(val('styleHeroDescSize', 16)) || 16)),
+        heroBadgeSize: Math.min(24, Math.max(10, Number(val('styleHeroBadgeSize', 12)) || 12)),
+        brandColor: val('styleBrandColor', '#243328'),
+        subtitleColor: val('styleSubtitleColor', '#80653b'),
+        heroTitleColor: val('styleHeroTitleColor', '#243328'),
+        heroDescColor: val('styleHeroDescColor', '#243328'),
+        heroBadgeColor: val('styleHeroBadgeColor', '#80653b')
+      };
+    }
+
+    function applySiteStyles() {
+      const d = headerData.siteStyles || {};
+      const root = document.documentElement.style;
+      const defaults = { globalFont: "'Montserrat', sans-serif", globalSize: 16, globalColor: "#243328", windowBg: "#f5efe4", heroBg: "#f5efe4", heroBgUrl: "", brandSize: 34, subtitleSize: 18, heroTitleSize: 48, heroDescSize: 16, heroBadgeSize: 12, brandColor: "#243328", subtitleColor: "#80653b", heroTitleColor: "#243328", heroDescColor: "#243328", heroBadgeColor: "#80653b" };
+      const st = { ...defaults, ...d };
+      const map = { globalFont: '--pp-global-font', globalSize: '--pp-global-size', globalColor: '--pp-global-color', windowBg: '--pp-window-bg', heroBg: '--pp-hero-bg', brandSize: '--pp-brand-size', subtitleSize: '--pp-subtitle-size', heroTitleSize: '--pp-hero-title-size', heroDescSize: '--pp-hero-desc-size', heroBadgeSize: '--pp-hero-badge-size', brandColor: '--pp-brand-color', subtitleColor: '--pp-subtitle-color', heroTitleColor: '--pp-hero-title-color', heroDescColor: '--pp-hero-desc-color', heroBadgeColor: '--pp-hero-badge-color' };
+      Object.entries(map).forEach(([key, cssVar]) => root.setProperty(cssVar, typeof st[key] === 'number' ? st[key] + 'px' : st[key]));
+      const hero = document.querySelector('.hero-banner-vintage');
+      if (hero) {
+        hero.style.backgroundColor = st.heroBg;
+        hero.style.backgroundImage = st.heroBgUrl ? 'linear-gradient(rgba(245,239,228,.25), rgba(245,239,228,.25)), url("' + st.heroBgUrl.replace(/["\\]/g, '') + '")' : '';
+      }
+    }
+
+    function populateSiteStylesForm() {
+      const d = headerData.siteStyles || {};
+      const defaults = { globalFont: "'Montserrat', sans-serif", globalSize: 16, globalColor: "#243328", windowBg: "#f5efe4", heroBg: "#f5efe4", heroBgUrl: "", brandSize: 34, subtitleSize: 18, heroTitleSize: 48, heroDescSize: 16, heroBadgeSize: 12, brandColor: "#243328", subtitleColor: "#80653b", heroTitleColor: "#243328", heroDescColor: "#243328", heroBadgeColor: "#80653b" };
+      const st = { ...defaults, ...d };
+      const ids = { globalFont: 'styleGlobalFont', globalSize: 'styleGlobalSize', globalColor: 'styleGlobalColor', windowBg: 'styleWindowBg', heroBg: 'styleHeroBg', heroBgUrl: 'styleHeroBgUrl', brandSize: 'styleBrandSize', subtitleSize: 'styleSubtitleSize', heroTitleSize: 'styleHeroTitleSize', heroDescSize: 'styleHeroDescSize', heroBadgeSize: 'styleHeroBadgeSize', brandColor: 'styleBrandColor', subtitleColor: 'styleSubtitleColor', heroTitleColor: 'styleHeroTitleColor', heroDescColor: 'styleHeroDescColor', heroBadgeColor: 'styleHeroBadgeColor' };
+      Object.entries(ids).forEach(([key, id]) => { const el = document.getElementById(id); if (el) el.value = st[key]; });
+    }
+
+    function previewSiteStyles() {
+      headerData.siteStyles = getSiteStylesFromForm();
+      applySiteStyles();
     }
 
     function applyFooterData() {
@@ -2005,6 +2115,7 @@
       document.getElementById('editHeroBadge').value = headerData.heroBadge;
       document.getElementById('editHeroTitle').value = headerData.heroTitle;
       document.getElementById('editHeroDesc').value = headerData.heroDesc;
+      populateSiteStylesForm();
       openModal('headerModal');
     }
 
@@ -2031,6 +2142,7 @@
       headerData.heroBadge = sanitizeHTML(document.getElementById('editHeroBadge').value);
       headerData.heroTitle = sanitizeHTML(document.getElementById('editHeroTitle').value);
       headerData.heroDesc = sanitizeHTML(document.getElementById('editHeroDesc').value);
+      headerData.siteStyles = getSiteStylesFromForm();
 
       const saved = await saveHeaderState();
       if (saved) closeModal('headerModal');
