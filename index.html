@@ -117,6 +117,9 @@
     :root {
       --pp-global-font: 'Montserrat', sans-serif;
       --pp-global-size: 16px;
+      --pp-global-weight: 400;
+      --pp-global-style: normal;
+      --pp-global-decoration: none;
       --pp-global-color: #243328;
       --pp-window-bg: #f5efe4;
       --pp-hero-bg: #f5efe4;
@@ -132,7 +135,7 @@
       --pp-hero-desc-color: #243328;
       --pp-hero-badge-color: #80653b;
     }
-    body { font-family: var(--pp-global-font); font-size: var(--pp-global-size); color: var(--pp-global-color); }
+    body { font-family: var(--pp-global-font); font-size: var(--pp-global-size); font-weight: var(--pp-global-weight, 400); font-style: var(--pp-global-style, normal); text-decoration: var(--pp-global-decoration, none); color: var(--pp-global-color); }
     #siteTitleDisplay { font-size: var(--pp-brand-size) !important; color: var(--pp-brand-color) !important; line-height: 1.1; }
     #siteSubtitleDisplay { font-size: var(--pp-subtitle-size) !important; color: var(--pp-subtitle-color) !important; line-height: 1.25; }
     #heroTitleDisplay { font-size: var(--pp-hero-title-size) !important; color: var(--pp-hero-title-color) !important; }
@@ -724,6 +727,9 @@
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div><label class="block text-xs font-bold mb-1">Шрифт сайту</label><select id="styleGlobalFont" class="w-full border rounded-lg p-2 text-sm"><option value="'Montserrat', sans-serif">Montserrat</option><option value="'Cormorant Garamond', serif">Cormorant Garamond</option><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="'Trebuchet MS', sans-serif">Trebuchet MS</option></select></div>
+            <div><label class="block text-xs font-bold mb-1">Розмір основного тексту, px (1–50)</label><input type="number" id="styleGlobalSize" min="1" max="50" value="16" class="w-full border rounded-lg p-2 text-sm"></div>
+            <div><label class="block text-xs font-bold mb-1">Насиченість основного тексту</label><select id="styleGlobalWeight" class="w-full border rounded-lg p-2 text-sm"><option value="300">Тонкий</option><option value="400">Звичайний</option><option value="500">Середній</option><option value="600">Напівжирний</option><option value="700">Жирний</option><option value="800">Дуже жирний</option></select></div>
+            <div><label class="block text-xs font-bold mb-1">Стиль основного тексту</label><div class="flex gap-2"><button type="button" onclick="toggleGlobalTextStyle('bold')" class="border rounded px-3 py-2 font-bold" title="Жирний">B</button><button type="button" onclick="toggleGlobalTextStyle('italic')" class="border rounded px-3 py-2 italic" title="Курсив">I</button><button type="button" onclick="toggleGlobalTextStyle('underline')" class="border rounded px-3 py-2 underline" title="Підкреслення">U</button></div></div>
             <div><label class="block text-xs font-bold mb-1">Колір основного тексту</label><input type="color" id="styleGlobalColor" value="#243328" class="w-full h-10 border rounded-lg p-1"></div>
             <div><label class="block text-xs font-bold mb-1">Колір назви магазину</label><input type="color" id="styleBrandColor" value="#243328" class="w-full h-10 border rounded-lg p-1"></div>
             <div><label class="block text-xs font-bold mb-1">Колір підзаголовка</label><input type="color" id="styleSubtitleColor" value="#80653b" class="w-full h-10 border rounded-lg p-1"></div>
@@ -1114,7 +1120,7 @@
       heroBadge: "Повний асортимент гуртового склада",
       heroTitle: "Пелюстки краси та перлини вишуканості",
       heroDesc: "Ласкаво просимо до вишуканої квіткової крамниці «Petal & Pearl». У нас зібрано повний асортимент зрізаних троянд, хризантем, еустом, горшкових рослин, декору та витонченої фурнітури в старовинному класичному стилі.",
-      siteStyles: { globalFont: "'Montserrat', sans-serif", globalSize: 16, globalColor: "#243328", windowBg: "#f5efe4", heroBg: "#f5efe4", heroBgUrl: "", brandSize: 34, subtitleSize: 18, heroTitleSize: 48, heroDescSize: 16, heroDescWeight: 400, heroBadgeSize: 12, brandColor: "#243328", subtitleColor: "#80653b", heroTitleColor: "#243328", heroDescColor: "#243328", heroBadgeColor: "#80653b" }
+      siteStyles: { globalFont: "'Montserrat', sans-serif", globalSize: 16, globalWeight: 400, globalStyle: 'normal', globalDecoration: 'none', globalColor: "#243328", windowBg: "#f5efe4", heroBg: "#f5efe4", heroBgUrl: "", brandSize: 34, subtitleSize: 18, heroTitleSize: 48, heroDescSize: 16, heroDescWeight: 400, heroBadgeSize: 12, brandColor: "#243328", subtitleColor: "#80653b", heroTitleColor: "#243328", heroDescColor: "#243328", heroBadgeColor: "#80653b" }
     };
 
     let footerData = {
@@ -1444,7 +1450,10 @@
       const val = (id, fallback) => document.getElementById(id)?.value ?? fallback;
       return {
         globalFont: val('styleGlobalFont', "'Montserrat', sans-serif"),
-        globalSize: Math.min(22, Math.max(12, Number(val('styleGlobalSize', 16)) || 16)),
+        globalSize: Math.min(50, Math.max(1, Number(val('styleGlobalSize', 16)) || 16)),
+        globalWeight: [300,400,500,600,700,800].includes(Number(val('styleGlobalWeight', 400))) ? Number(val('styleGlobalWeight', 400)) : 400,
+        globalStyle: val('styleGlobalStyle', 'normal'),
+        globalDecoration: val('styleGlobalDecoration', 'none'),
         globalColor: val('styleGlobalColor', '#243328'),
         windowBg: val('styleWindowBg', '#f5efe4'),
         heroBg: val('styleHeroBg', '#f5efe4'),
@@ -1468,7 +1477,7 @@
       const root = document.documentElement.style;
       const defaults = { globalFont: "'Montserrat', sans-serif", globalSize: 16, globalColor: "#243328", windowBg: "#f5efe4", heroBg: "#f5efe4", heroBgUrl: "", brandSize: 34, subtitleSize: 18, heroTitleSize: 48, heroDescSize: 16, heroDescWeight: 400, heroBadgeSize: 12, brandColor: "#243328", subtitleColor: "#80653b", heroTitleColor: "#243328", heroDescColor: "#243328", heroBadgeColor: "#80653b" };
       const st = { ...defaults, ...d };
-      const map = { globalFont: '--pp-global-font', globalSize: '--pp-global-size', globalColor: '--pp-global-color', windowBg: '--pp-window-bg', heroBg: '--pp-hero-bg', brandSize: '--pp-brand-size', subtitleSize: '--pp-subtitle-size', heroTitleSize: '--pp-hero-title-size', heroDescSize: '--pp-hero-desc-size', heroDescWeight: '--pp-hero-desc-weight', heroBadgeSize: '--pp-hero-badge-size', brandColor: '--pp-brand-color', subtitleColor: '--pp-subtitle-color', heroTitleColor: '--pp-hero-title-color', heroDescColor: '--pp-hero-desc-color', heroBadgeColor: '--pp-hero-badge-color' };
+      const map = { globalFont: '--pp-global-font', globalSize: '--pp-global-size', globalWeight: '--pp-global-weight', globalStyle: '--pp-global-style', globalDecoration: '--pp-global-decoration', globalColor: '--pp-global-color', windowBg: '--pp-window-bg', heroBg: '--pp-hero-bg', brandSize: '--pp-brand-size', subtitleSize: '--pp-subtitle-size', heroTitleSize: '--pp-hero-title-size', heroDescSize: '--pp-hero-desc-size', heroDescWeight: '--pp-hero-desc-weight', heroBadgeSize: '--pp-hero-badge-size', brandColor: '--pp-brand-color', subtitleColor: '--pp-subtitle-color', heroTitleColor: '--pp-hero-title-color', heroDescColor: '--pp-hero-desc-color', heroBadgeColor: '--pp-hero-badge-color' };
       Object.entries(map).forEach(([key, cssVar]) => {
         const value = key === 'heroDescWeight' ? String(st[key]) : (typeof st[key] === 'number' ? st[key] + 'px' : st[key]);
         root.setProperty(cssVar, value);
@@ -1484,8 +1493,19 @@
       const d = headerData.siteStyles || {};
       const defaults = { globalFont: "'Montserrat', sans-serif", globalSize: 16, globalColor: "#243328", windowBg: "#f5efe4", heroBg: "#f5efe4", heroBgUrl: "", brandSize: 34, subtitleSize: 18, heroTitleSize: 48, heroDescSize: 16, heroBadgeSize: 12, brandColor: "#243328", subtitleColor: "#80653b", heroTitleColor: "#243328", heroDescColor: "#243328", heroBadgeColor: "#80653b" };
       const st = { ...defaults, ...d };
-      const ids = { globalFont: 'styleGlobalFont', globalSize: 'styleGlobalSize', globalColor: 'styleGlobalColor', windowBg: 'styleWindowBg', heroBg: 'styleHeroBg', heroBgUrl: 'styleHeroBgUrl', brandSize: 'styleBrandSize', subtitleSize: 'styleSubtitleSize', heroTitleSize: 'styleHeroTitleSize', heroDescSize: 'styleHeroDescSize', heroDescWeight: 'styleHeroDescWeight', heroBadgeSize: 'styleHeroBadgeSize', brandColor: 'styleBrandColor', subtitleColor: 'styleSubtitleColor', heroTitleColor: 'styleHeroTitleColor', heroDescColor: 'styleHeroDescColor', heroBadgeColor: 'styleHeroBadgeColor' };
+      const ids = { globalFont: 'styleGlobalFont', globalSize: 'styleGlobalSize', globalWeight: 'styleGlobalWeight', globalColor: 'styleGlobalColor', windowBg: 'styleWindowBg', heroBg: 'styleHeroBg', heroBgUrl: 'styleHeroBgUrl', brandSize: 'styleBrandSize', subtitleSize: 'styleSubtitleSize', heroTitleSize: 'styleHeroTitleSize', heroDescSize: 'styleHeroDescSize', heroDescWeight: 'styleHeroDescWeight', heroBadgeSize: 'styleHeroBadgeSize', brandColor: 'styleBrandColor', subtitleColor: 'styleSubtitleColor', heroTitleColor: 'styleHeroTitleColor', heroDescColor: 'styleHeroDescColor', heroBadgeColor: 'styleHeroBadgeColor' };
       Object.entries(ids).forEach(([key, id]) => { const el = document.getElementById(id); if (el) el.value = st[key]; });
+    }
+
+    function toggleGlobalTextStyle(kind) {
+      const style = getSiteStylesFromForm();
+      if (kind === 'bold') style.globalWeight = style.globalWeight >= 700 ? 400 : 700;
+      if (kind === 'italic') style.globalStyle = style.globalStyle === 'italic' ? 'normal' : 'italic';
+      if (kind === 'underline') style.globalDecoration = style.globalDecoration === 'underline' ? 'none' : 'underline';
+      headerData.siteStyles = style;
+      const weight = document.getElementById('styleGlobalWeight');
+      if (weight) weight.value = String(style.globalWeight);
+      applySiteStyles();
     }
 
     function previewSiteStyles() {
