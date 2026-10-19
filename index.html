@@ -699,7 +699,14 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-vintage-green mb-1">Опис на банері</label>
-          <textarea id="editHeroDesc" rows="3" required class="w-full border border-vintage-border rounded-lg p-2 text-sm bg-white"></textarea>
+          <div class="flex flex-wrap gap-1 mb-2" role="toolbar" aria-label="Форматування опису банера">
+            <button type="button" onclick="formatHeroDescription('bold')" title="Жирний" aria-label="Жирний" class="w-9 h-9 border rounded font-bold bg-white hover:bg-amber-50">B</button>
+            <button type="button" onclick="formatHeroDescription('italic')" title="Курсив" aria-label="Курсив" class="w-9 h-9 border rounded italic bg-white hover:bg-amber-50">I</button>
+            <button type="button" onclick="formatHeroDescription('underline')" title="Підкреслений" aria-label="Підкреслений" class="w-9 h-9 border rounded underline bg-white hover:bg-amber-50">U</button>
+            <button type="button" onclick="formatHeroDescription('removeFormat')" title="Прибрати форматування" class="px-2 h-9 border rounded text-xs bg-white hover:bg-amber-50">Очистити формат</button>
+          </div>
+          <div id="editHeroDesc" contenteditable="true" role="textbox" aria-multiline="true" class="w-full min-h-[100px] border border-vintage-border rounded-lg p-2 text-sm bg-white leading-relaxed"></div>
+          <p class="text-[11px] text-gray-500 mt-1">Виділіть потрібний текст і натисніть B, I або U, як у Word.</p>
         </div>
 
         <hr class="border-vintage-border">
@@ -1357,6 +1364,42 @@
       applyFooterData();
     }
 
+    function sanitizeRichText(value) {
+      const input = String(value ?? '');
+      // Дозволяємо лише безпечне форматування, яке створює редактор: bold, italic, underline та абзаци.
+      const decoded = decodeDisplayEntities(input);
+      const template = document.createElement('template');
+      template.innerHTML = decoded;
+      const walk = (node) => {
+        [...node.childNodes].forEach(child => {
+          if (child.nodeType === Node.TEXT_NODE) return;
+          if (child.nodeType !== Node.ELEMENT_NODE) { child.remove(); return; }
+          const tag = child.tagName.toLowerCase();
+          if (['b','strong','i','em','u','br','p','div'].includes(tag)) {
+            walk(child);
+            if (tag === 'div' || tag === 'p') {
+              const replacement = document.createElement('span');
+              while (child.firstChild) replacement.appendChild(child.firstChild);
+              child.replaceWith(replacement);
+            }
+          } else {
+            const textNode = document.createTextNode(child.textContent || '');
+            child.replaceWith(textNode);
+          }
+        });
+      };
+      walk(template.content);
+      return template.innerHTML.replace(/<span>/g, '').replace(/<\/span>/g, '').replace(/&nbsp;/g, ' ');
+    }
+
+    function formatHeroDescription(command) {
+      const editor = document.getElementById('editHeroDesc');
+      if (!editor || !isAdmin) return;
+      editor.focus();
+      if (command === 'removeFormat') document.execCommand('removeFormat', false, null);
+      else if (['bold','italic','underline'].includes(command)) document.execCommand(command, false, null);
+    }
+
     function decodeDisplayEntities(value) {
       // Старі налаштування могли зберегти амперсанд як &amp; або навіть &amp;amp;.
       // Декодуємо HTML-сутності кілька разів, але повертаємо результат через textContent/innerText.
@@ -1398,7 +1441,7 @@
       
       document.getElementById('heroBadgeDisplay').innerHTML = `<i class="fa-solid fa-feather-pointed"></i> ${headerData.heroBadge}`;
       document.getElementById('heroTitleDisplay').innerText = headerData.heroTitle;
-      document.getElementById('heroDescDisplay').innerText = headerData.heroDesc;
+      document.getElementById('heroDescDisplay').innerHTML = sanitizeRichText(decodeDisplayEntities(headerData.heroDesc));
       applySiteStyles();
     }
 
@@ -2140,7 +2183,7 @@
       document.getElementById('editMusicUrl').value = headerData.musicUrl || document.getElementById('bgAudioSource').src;
       document.getElementById('editHeroBadge').value = headerData.heroBadge;
       document.getElementById('editHeroTitle').value = headerData.heroTitle;
-      document.getElementById('editHeroDesc').value = headerData.heroDesc;
+      document.getElementById('editHeroDesc').innerHTML = sanitizeRichText(decodeDisplayEntities(headerData.heroDesc));
       populateSiteStylesForm();
       openModal('headerModal');
     }
@@ -2167,7 +2210,7 @@
       headerData.musicUrl = document.getElementById('editMusicUrl').value.trim() || headerData.musicUrl;
       headerData.heroBadge = sanitizeHTML(document.getElementById('editHeroBadge').value);
       headerData.heroTitle = sanitizeHTML(document.getElementById('editHeroTitle').value);
-      headerData.heroDesc = sanitizeHTML(document.getElementById('editHeroDesc').value);
+      headerData.heroDesc = sanitizeRichText(document.getElementById('editHeroDesc').innerHTML);
       headerData.siteStyles = getSiteStylesFromForm();
 
       const saved = await saveHeaderState();
