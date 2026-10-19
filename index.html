@@ -182,7 +182,7 @@
           <span id="adminBadge" class="hidden bg-vintage-gold text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow">
             <i class="fa-solid fa-user-shield mr-1"></i> Режим адміна
           </span>
-          <button onclick="toggleAdminModal()" id="adminLoginBtn" class="hover:text-vintage-gold text-xs underline font-medium transition flex items-center gap-1">
+          <button onclick="toggleAdminModal()" id="adminLoginBtn" class="hidden hover:text-vintage-gold text-xs underline font-medium transition flex items-center gap-1">
             <i class="fa-solid fa-lock text-vintage-gold"></i>
             <span id="adminBtnText">Вхід для адміна</span>
           </button>
@@ -364,7 +364,7 @@
         <ul class="space-y-2 text-xs">
           <li><a href="#" class="hover:text-vintage-gold transition">Оплата та доставка</a></li>
           <li><a href="#" class="hover:text-vintage-gold transition">Умови гуртових замовлень</a></li>
-          <li><a href="#" onclick="toggleAdminModal()" class="hover:text-vintage-gold transition">Панель адміна</a></li>
+          <li id="ownerAdminFooterLink" class="hidden"><a href="#" onclick="toggleAdminModal(); return false;" class="hover:text-vintage-gold transition">Панель адміна</a></li>
         </ul>
       </div>
 
@@ -1658,7 +1658,13 @@
       document.getElementById('adminPanel').classList.toggle('hidden', !isAdmin);
       document.getElementById('adminBadge').classList.toggle('hidden', !isAdmin);
       document.getElementById('adminCatalogAddBtn').classList.toggle('hidden', !isAdmin);
-      document.getElementById('adminBtnText').innerText = isAdmin ? "Режим редагування" : "Вхід для адміна";
+
+      // Адміністративні точки входу приховані від покупців.
+      // Власник відкриває їх через ?admin=1; справжній доступ усе одно вимагає Supabase Auth.
+      const ownerEntryEnabled = new URLSearchParams(window.location.search).get('admin') === '1' || isAdmin;
+      document.getElementById('adminLoginBtn').classList.toggle('hidden', !ownerEntryEnabled);
+      document.getElementById('ownerAdminFooterLink')?.classList.toggle('hidden', !ownerEntryEnabled);
+      document.getElementById('adminBtnText').innerText = isAdmin ? "Вийти з режиму редагування" : "Вхід для власника";
       filterProducts();
     }
 
