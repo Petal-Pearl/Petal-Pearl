@@ -2763,7 +2763,7 @@
         const p = products.find(item => item.id == id);
         if (!p) return '';
         const qty = cart[id];
-        const priceToUse = qty > 10 ? p.wholesalePrice : p.retailPrice;
+        const priceToUse = p.retailPrice;
         const sum = priceToUse * qty;
         total += sum;
 
@@ -2787,7 +2787,7 @@
         const p = products.find(item => item.id == id);
         if (p) {
           const qty = cart[id];
-          const priceToUse = qty > 10 ? p.wholesalePrice : p.retailPrice;
+          const priceToUse = p.retailPrice;
           total += priceToUse * qty;
         }
       });
