@@ -1910,7 +1910,7 @@
 
       document.getElementById('mediaModalTitle').innerHTML = `<span class="${p.nameStyle || ''}">${p.name}</span>`;
       const modalPrice = document.getElementById('mediaModalPrice');
-      if (modalPrice) modalPrice.textContent = `Опт: ${p.wholesalePrice} грн/шт · Роздріб: ${p.retailPrice} грн/шт`;
+      if (modalPrice) modalPrice.textContent = isAdmin ? `Опт: ${p.wholesalePrice} грн/шт · Роздріб: ${p.retailPrice} грн/шт` : `Роздрібна ціна: ${p.retailPrice} грн/шт`;
       const modalQty = document.getElementById('mediaModalQty');
       if (modalQty) modalQty.value = "1";
       const cartMsg = document.getElementById('mediaModalCartMessage');
@@ -2467,7 +2467,7 @@
               </div>
               <div class="mt-4 pt-3 border-t border-vintage-border/60">
                 <div class="flex flex-col mb-3">
-                  <span class="text-[11px] font-bold text-amber-800">Опт ціна: <span class="font-serif font-extrabold text-vintage-green ${pStyle}" style="font-size:${Math.min(50,Math.max(1,Number(p.priceFontSize)||18))}px;font-family:${p.priceFontFamily || 'inherit'}">${p.wholesalePrice} грн/шт</span></span>
+                  ${isAdmin ? `<span class="text-[11px] font-bold text-amber-800">Опт ціна: <span class="font-serif font-extrabold text-vintage-green ${pStyle}" style="font-size:${Math.min(50,Math.max(1,Number(p.priceFontSize)||18))}px;font-family:${p.priceFontFamily || "inherit"}">${p.wholesalePrice} грн/шт</span></span>` : ""}
                   <span class="text-[11px] font-semibold text-gray-600">Роздріб ціна: <span class="font-serif font-bold text-vintage-green ${pStyle}" style="font-size:${Math.min(50,Math.max(1,Number(p.priceFontSize)||16))}px;font-family:${p.priceFontFamily || 'inherit'}">${p.retailPrice} грн/шт</span></span>
                   <span class="text-[10px] text-vintage-green/70 mt-1">Роздріб — до 10 шт включно; опт — від 11 шт</span>
                 </div>
