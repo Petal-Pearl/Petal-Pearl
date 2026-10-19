@@ -1968,10 +1968,34 @@
     }
 
     function setMediaImageIndex(idx) {
-      activeMediaIndex = idx;
+      if (!activeMediaProduct || !Array.isArray(activeMediaProduct.images) || !activeMediaProduct.images.length) return;
+      activeMediaIndex = (idx + activeMediaProduct.images.length) % activeMediaProduct.images.length;
       switchMediaMode('photo');
       updateMediaModalView();
     }
+
+    // Mobile gallery swipe: horizontal finger movement changes the active product photo.
+    (function enableMediaGallerySwipe() {
+      const gallery = document.getElementById('mediaModalImg')?.parentElement;
+      if (!gallery || gallery.dataset.swipeReady === '1') return;
+      gallery.dataset.swipeReady = '1';
+      let startX = 0, startY = 0, tracking = false;
+      gallery.addEventListener('touchstart', (event) => {
+        if (!activeMediaProduct || activeMediaProduct.images.length < 2 || !event.touches || event.touches.length !== 1) return;
+        startX = event.touches[0].clientX;
+        startY = event.touches[0].clientY;
+        tracking = true;
+      }, { passive: true });
+      gallery.addEventListener('touchend', (event) => {
+        if (!tracking || !event.changedTouches || !activeMediaProduct) return;
+        tracking = false;
+        const dx = event.changedTouches[0].clientX - startX;
+        const dy = event.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+        setMediaImageIndex(activeMediaIndex + (dx < 0 ? 1 : -1));
+      }, { passive: true });
+      gallery.addEventListener('touchcancel', () => { tracking = false; }, { passive: true });
+    })();
 
     function switchMediaMode(mode) {
       const imgEl = document.getElementById('mediaModalImg');
