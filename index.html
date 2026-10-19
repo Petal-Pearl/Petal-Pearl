@@ -1431,7 +1431,10 @@
       const defaults = { globalFont: "'Montserrat', sans-serif", globalSize: 16, globalColor: "#243328", windowBg: "#f5efe4", heroBg: "#f5efe4", heroBgUrl: "", brandSize: 34, subtitleSize: 18, heroTitleSize: 48, heroDescSize: 16, heroDescWeight: 400, heroBadgeSize: 12, brandColor: "#243328", subtitleColor: "#80653b", heroTitleColor: "#243328", heroDescColor: "#243328", heroBadgeColor: "#80653b" };
       const st = { ...defaults, ...d };
       const map = { globalFont: '--pp-global-font', globalSize: '--pp-global-size', globalColor: '--pp-global-color', windowBg: '--pp-window-bg', heroBg: '--pp-hero-bg', brandSize: '--pp-brand-size', subtitleSize: '--pp-subtitle-size', heroTitleSize: '--pp-hero-title-size', heroDescSize: '--pp-hero-desc-size', heroDescWeight: '--pp-hero-desc-weight', heroBadgeSize: '--pp-hero-badge-size', brandColor: '--pp-brand-color', subtitleColor: '--pp-subtitle-color', heroTitleColor: '--pp-hero-title-color', heroDescColor: '--pp-hero-desc-color', heroBadgeColor: '--pp-hero-badge-color' };
-      Object.entries(map).forEach(([key, cssVar]) => root.setProperty(cssVar, typeof st[key] === 'number' ? st[key] + 'px' : st[key]));
+      Object.entries(map).forEach(([key, cssVar]) => {
+        const value = key === 'heroDescWeight' ? String(st[key]) : (typeof st[key] === 'number' ? st[key] + 'px' : st[key]);
+        root.setProperty(cssVar, value);
+      });
       const hero = document.querySelector('.hero-banner-vintage');
       if (hero) {
         hero.style.backgroundColor = st.heroBg;
