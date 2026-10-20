@@ -1775,9 +1775,9 @@
       document.getElementById('adminBadge').classList.toggle('hidden', !isAdmin);
       document.getElementById('adminCatalogAddBtn').classList.toggle('hidden', !isAdmin);
 
-      // Адміністративні точки входу приховані від покупців.
-      // Власник відкриває їх через ?admin=1; справжній доступ усе одно вимагає Supabase Auth.
-      const ownerEntryEnabled = new URLSearchParams(window.location.search).get('admin') === '1' || isAdmin;
+      // Кнопка входу власника доступна і на телефоні без спеціального параметра в URL.
+      // Це лише відкриває форму входу; доступ до панелі все одно захищений Supabase Auth.
+      const ownerEntryEnabled = true;
       document.getElementById('adminLoginBtn').classList.toggle('hidden', !ownerEntryEnabled);
       document.getElementById('ownerAdminFooterLink')?.classList.toggle('hidden', !ownerEntryEnabled);
       document.getElementById('adminBtnText').innerText = isAdmin ? "Вийти з режиму редагування" : "Вхід для власника";
