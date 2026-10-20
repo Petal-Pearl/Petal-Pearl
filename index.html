@@ -2820,7 +2820,7 @@
         fulfillmentLabels[order.fulfillment_status||"new"]||order.fulfillment_status,order.customer_name,order.customer_phone,order.customer_email,
         (Number(order.amount||0)/100).toFixed(2),order.currency||"UAH",Array.isArray(order.items)?order.items.map(item=>(item.name||"Товар")+" × "+(item.quantity||1)).join("; "):""
       ]);
-      const csv="\\uFEFF"+[headers,...rows].map(row=>row.map(cell).join(";")).join("\\r\\n");
+      const csv="\uFEFF"+[headers,...rows].map(row=>row.map(cell).join(";")).join("\r\n");
       const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}), url=URL.createObjectURL(blob), link=document.createElement("a");
       link.href=url;link.download="petal-pearl-orders-"+new Date().toISOString().slice(0,10)+".csv";document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
     }
