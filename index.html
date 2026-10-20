@@ -2807,8 +2807,10 @@
     function exportAdminOrdersCsv() {
       const list=document.getElementById("adminOrdersList");
       if(!Array.isArray(adminOrdersCache)||!adminOrdersCache.length){alert("Немає замовлень для експорту.");return;}
-      const visibleIds=new Set(Array.from(list.querySelectorAll("[data-order-search]:not(.hidden)")).map(card=>card.querySelector("[id^='fulfillment-status-']")?.id?.replace("fulfillment-status-","")).filter(Boolean));
-      const filtered=visibleIds.size?adminOrdersCache.filter(order=>visibleIds.has(String(order.id))):adminOrdersCache;
+      const allCards=Array.from(list.querySelectorAll("[data-order-search]"));
+      const visibleIds=new Set(allCards.filter(card=>!card.classList.contains("hidden")).map(card=>card.querySelector("[id^='fulfillment-status-']")?.id?.replace("fulfillment-status-","")).filter(Boolean));
+      const filtered=allCards.length?adminOrdersCache.filter(order=>visibleIds.has(String(order.id))):adminOrdersCache;
+      if(!filtered.length){alert("Немає замовлень для експорту за поточним фільтром.");return;}
       const paymentLabels={success:"Оплачено",pending:"Очікує оплати",processing:"Обробляється",failure:"Помилка оплати",expired:"Термін оплати минув"};
       const fulfillmentLabels={new:"Нове",confirmed:"Підтверджено",preparing:"Збирається",shipped:"Відправлено",completed:"Завершено",cancelled:"Скасовано"};
       const headers=["Номер замовлення","Дата","Статус оплати","Статус обробки","Покупець","Телефон","Email","Сума","Валюта","Товари"];
