@@ -982,7 +982,7 @@
           <div class="space-y-3 bg-white/80 p-3 rounded-lg border border-vintage-border">
             <div class="rounded-lg border border-vintage-gold/60 bg-vintage-cream p-3 space-y-2">
               <label for="prodBulkImgFiles" class="block text-xs font-bold text-vintage-green"><i class="fa-solid fa-cloud-arrow-up mr-1 text-vintage-gold"></i>Завантажити багато фото одразу</label>
-              <input type="file" id="prodBulkImgFiles" accept="image/jpeg,image/png,image/webp" multiple onchange="handleBulkImageUpload(event)" class="w-full text-xs border border-vintage-border rounded-lg p-2 bg-white cursor-pointer">
+              <input type="file" id="prodBulkImgFiles" accept="image/*,.img,.heic,.heif,.avif,.svg,.tif,.tiff,.bmp,.gif,.ico" multiple onchange="handleBulkImageUpload(event)" class="w-full text-xs border border-vintage-border rounded-lg p-2 bg-white cursor-pointer">
               <p class="text-[11px] text-gray-600">Можна вибрати одразу кілька JPG, PNG або WebP. До 30 фото за раз, кожне до 10 МБ. Фото додадуться до галереї цього товару.</p>
               <p id="prodBulkImgStatus" class="text-xs font-semibold text-vintage-green" aria-live="polite"></p>
             </div>
@@ -991,7 +991,7 @@
             <div class="space-y-1">
               <span class="text-[11px] font-bold text-vintage-green">1. Головне фото (файл JPEG або URL):</span>
               <div class="flex gap-2">
-                <input type="file" id="prodImgFile0" accept="image/jpeg,image/png,image/webp" onchange="handleMultiImageUpload(event, 0)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
+                <input type="file" id="prodImgFile0" accept="image/*,.img,.heic,.heif,.avif,.svg,.tif,.tiff,.bmp,.gif,.ico" onchange="handleMultiImageUpload(event, 0)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
                 <input type="text" id="prodImg0" class="product-image-url w-1/2 border border-vintage-border rounded p-1 text-xs bg-white" oninput="updateImagesFromInputs()" placeholder="https://...">
               </div>
             </div>
@@ -1000,7 +1000,7 @@
             <div class="space-y-1">
               <span class="text-[11px] font-semibold text-gray-700">2. Додаткове фото №2:</span>
               <div class="flex gap-2">
-                <input type="file" id="prodImgFile1" accept="image/jpeg,image/png,image/webp" onchange="handleMultiImageUpload(event, 1)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
+                <input type="file" id="prodImgFile1" accept="image/*,.img,.heic,.heif,.avif,.svg,.tif,.tiff,.bmp,.gif,.ico" onchange="handleMultiImageUpload(event, 1)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
                 <input type="text" id="prodImg1" class="product-image-url w-1/2 border border-vintage-border rounded p-1 text-xs bg-white" oninput="updateImagesFromInputs()" placeholder="https://...">
               </div>
             </div>
@@ -1009,7 +1009,7 @@
             <div class="space-y-1">
               <span class="text-[11px] font-semibold text-gray-700">3. Додаткове фото №3:</span>
               <div class="flex gap-2">
-                <input type="file" id="prodImgFile2" accept="image/jpeg,image/png,image/webp" onchange="handleMultiImageUpload(event, 2)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
+                <input type="file" id="prodImgFile2" accept="image/*,.img,.heic,.heif,.avif,.svg,.tif,.tiff,.bmp,.gif,.ico" onchange="handleMultiImageUpload(event, 2)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
                 <input type="text" id="prodImg2" class="product-image-url w-1/2 border border-vintage-border rounded p-1 text-xs bg-white" oninput="updateImagesFromInputs()" placeholder="https://...">
               </div>
             </div>
@@ -1018,7 +1018,7 @@
             <div class="space-y-1">
               <span class="text-[11px] font-semibold text-gray-700">4. Додаткове фото №4:</span>
               <div class="flex gap-2">
-                <input type="file" id="prodImgFile3" accept="image/jpeg,image/png,image/webp" onchange="handleMultiImageUpload(event, 3)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
+                <input type="file" id="prodImgFile3" accept="image/*,.img,.heic,.heif,.avif,.svg,.tif,.tiff,.bmp,.gif,.ico" onchange="handleMultiImageUpload(event, 3)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
                 <input type="text" id="prodImg3" class="product-image-url w-1/2 border border-vintage-border rounded p-1 text-xs bg-white" oninput="updateImagesFromInputs()" placeholder="https://...">
               </div>
             </div>
@@ -1027,7 +1027,7 @@
             <div class="space-y-1">
               <span class="text-[11px] font-semibold text-gray-700">5. Додаткове фото №5:</span>
               <div class="flex gap-2">
-                <input type="file" id="prodImgFile4" accept="image/jpeg,image/png,image/webp" onchange="handleMultiImageUpload(event, 4)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
+                <input type="file" id="prodImgFile4" accept="image/*,.img,.heic,.heif,.avif,.svg,.tif,.tiff,.bmp,.gif,.ico" onchange="handleMultiImageUpload(event, 4)" class="w-1/2 text-[10px] border border-vintage-border rounded p-1 bg-white cursor-pointer">
                 <input type="text" id="prodImg4" class="product-image-url w-1/2 border border-vintage-border rounded p-1 text-xs bg-white" oninput="updateImagesFromInputs()" placeholder="https://...">
               </div>
             </div>
@@ -2643,6 +2643,18 @@
       }).join('');
     }
 
+    function isSupportedProductImageFile(file) {
+      const extension = String(file.name || "").split(".").pop().toLowerCase();
+      const supportedExtensions = ["jpg","jpeg","jpe","png","webp","avif","gif","svg","bmp","tif","tiff","heic","heif","ico","img"];
+      return Boolean(file.type && file.type.startsWith("image/")) || supportedExtensions.includes(extension);
+    }
+    function productImageContentType(file) {
+      if (file.type && file.type.startsWith("image/")) return file.type;
+      const extension = String(file.name || "").split(".").pop().toLowerCase();
+      const types = {jpg:"image/jpeg",jpeg:"image/jpeg",jpe:"image/jpeg",png:"image/png",webp:"image/webp",avif:"image/avif",gif:"image/gif",svg:"image/svg+xml",bmp:"image/bmp",tif:"image/tiff",tiff:"image/tiff",heic:"image/heic",heif:"image/heif",ico:"image/x-icon"};
+      return types[extension] || "application/octet-stream";
+    }
+
     async function handleMultiImageUpload(e, index) {
       const input = e.target;
       const file = input.files && input.files[0];
@@ -2652,8 +2664,8 @@
         input.value = "";
         return;
       }
-      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        alert("Оберіть фото у форматі JPG, PNG або WebP.");
+      if (!isSupportedProductImageFile(file)) {
+        alert("Оберіть файл зображення. Підтримуються JPG, PNG, WebP, AVIF, GIF, SVG, BMP, TIFF, HEIC/HEIF та інші формати зображень.");
         input.value = "";
         return;
       }
@@ -2678,7 +2690,7 @@
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const path = "products/" + Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "-" + index + "-" + safeName;
         // Use a unique path and upsert:false, matching the working bulk uploader.
-        const { error } = await supabaseClient.storage.from("product-photos").upload(path, file, { contentType: file.type, upsert: false });
+        const { error } = await supabaseClient.storage.from("product-photos").upload(path, file, { contentType: productImageContentType(file), upsert: false });
         if (error) throw error;
         const { data } = supabaseClient.storage.from("product-photos").getPublicUrl(path);
         target.value = data.publicUrl;
@@ -2714,9 +2726,9 @@
       if (!files.length) return;
       if (!isAdmin) { alert("Увійдіть як адміністратор перед завантаженням фото."); input.value = ""; return; }
       if (files.length > 30) { alert("За один раз можна вибрати не більше 30 фото."); input.value = ""; return; }
-      const invalid = files.find(file => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024);
+      const invalid = files.find(file => !isSupportedProductImageFile(file) || file.size > 10 * 1024 * 1024);
       if (invalid) {
-        alert('Файл "' + invalid.name + '" має неправильний формат або перевищує 10 МБ. Оберіть JPG, PNG чи WebP до 10 МБ кожне.');
+        alert('Файл "' + invalid.name + '" має непідтримуваний формат або перевищує 10 МБ. Оберіть зображення до 10 МБ кожне.');
         input.value = "";
         return;
       }
