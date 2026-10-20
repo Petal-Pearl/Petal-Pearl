@@ -186,9 +186,9 @@
           <span id="adminBadge" class="hidden bg-vintage-gold text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow">
             <i class="fa-solid fa-user-shield mr-1"></i> Режим адміна
           </span>
-          <button onclick="toggleAdminModal()" id="adminLoginBtn" class="hidden hover:text-vintage-gold text-xs underline font-medium transition flex items-center gap-1">
-            <i class="fa-solid fa-lock text-vintage-gold"></i>
-            <span id="adminBtnText">Вхід для адміна</span>
+          <button onclick="toggleAdminModal()" id="adminLoginBtn" class="hidden hover:text-vintage-gold text-xs font-medium transition flex items-center gap-1 rounded px-1.5 py-1" title="Дата та час">
+            <i class="fa-regular fa-clock text-vintage-gold"></i>
+            <span id="adminBtnText" class="tabular-nums">--.--.----, --:--</span>
           </button>
         </div>
       </div>
@@ -218,7 +218,7 @@
           <button onclick="toggleView('table')" id="btnViewTable" class="p-2 text-sm text-vintage-green hover:bg-vintage-card rounded transition" title="Вигляд таблицею (Опт)"><i class="fa-solid fa-list"></i></button>
         </div>
 
-        <button onclick="openModal('cartModal')" class="relative bg-vintage-green text-vintage-cream px-4 py-2.5 rounded-lg font-medium hover:bg-vintage-greenLight transition flex items-center space-x-2 border border-vintage-gold shadow-md">
+        <button id="cartButton" onclick="openModal('cartModal')" class="relative bg-vintage-green text-vintage-cream px-4 py-2.5 rounded-lg font-medium hover:bg-vintage-greenLight transition flex items-center space-x-2 border border-vintage-gold shadow-md">
           <i class="fa-solid fa-basket-shopping text-vintage-gold"></i>
           <span class="hidden sm:inline">Кошик</span>
           <span id="cartBadge" class="bg-vintage-gold text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">0</span>
@@ -1198,6 +1198,9 @@
       renderCategoryNav();
       filterProducts();
       checkAdminStatus();
+      updateOwnerClock();
+      setInterval(updateOwnerClock, 30000);
+      updateCartUI();
       syncProductsFromCloud();
       syncSiteSettingsFromCloud();
       supabaseClient.auth.onAuthStateChange((_event, session) => {
@@ -1764,6 +1767,18 @@
       }
     }
 
+    function updateOwnerClock() {
+      const el = document.getElementById('adminBtnText');
+      if (!el) return;
+      const now = new Date();
+      el.textContent = new Intl.DateTimeFormat('uk-UA', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      }).format(now).replace(',', '');
+      const button = document.getElementById('adminLoginBtn');
+      if (button) button.title = isAdmin ? 'Режим адміністратора' : 'Дата й час';
+    }
+
     async function checkAdminStatus() {
       // Не доверяем sessionStorage: доступ к панели зависит от реальной сессии Supabase.
       const { data, error } = await supabaseClient.auth.getSession();
@@ -1780,7 +1795,7 @@
       const ownerEntryEnabled = true;
       document.getElementById('adminLoginBtn').classList.toggle('hidden', !ownerEntryEnabled);
       document.getElementById('ownerAdminFooterLink')?.classList.toggle('hidden', !ownerEntryEnabled);
-      document.getElementById('adminBtnText').innerText = isAdmin ? "Вийти з режиму редагування" : "Вхід для власника";
+      updateOwnerClock();
       filterProducts();
     }
 
@@ -2961,6 +2976,19 @@
     function updateCartUI() {
       const count = Object.keys(cart).reduce((sum, id) => sum + (Number(cart[id]) || 0), 0);
       document.getElementById('cartBadge').innerText = count;
+      const cartButton = document.getElementById('cartButton');
+      const cartBadge = document.getElementById('cartBadge');
+      if (cartButton) {
+        cartButton.classList.toggle('bg-green-700', count > 0);
+        cartButton.classList.toggle('border-green-400', count > 0);
+        cartButton.classList.toggle('bg-vintage-green', count === 0);
+        cartButton.classList.toggle('border-vintage-gold', count === 0);
+        cartButton.setAttribute('aria-label', count > 0 ? 'Кошик, товарів: ' + count : 'Кошик порожній');
+      }
+      if (cartBadge) {
+        cartBadge.classList.toggle('bg-green-600', count > 0);
+        cartBadge.classList.toggle('bg-vintage-gold', count === 0);
+      }
       document.querySelectorAll('[data-cart-product]').forEach(button => {
         const id = String(button.getAttribute('data-cart-product'));
         const qty = Number(cart[id] || 0);
