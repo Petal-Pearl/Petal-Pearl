@@ -3042,21 +3042,21 @@
     }
 
     function validateCustomerName(value) {
-      const parts = String(value || '').trim().split(/\\s+/).filter(Boolean);
-      return parts.length >= 2 && parts.every(part => /^[\\p{L}][\\p{L}'’\\-]*$/u.test(part));
+      const parts = String(value || '').trim().split(/\s+/).filter(Boolean);
+      return parts.length >= 2 && parts.every(part => /^[\p{L}][\p{L}'’\-]*$/u.test(part));
     }
 
     function normalizeAndValidatePhone(value) {
       const raw = String(value || '').trim();
-      if (!/^\\+380[\\s()\\-\\d]*$/.test(raw)) return null;
-      const digits = raw.replace(/\\D/g, '');
+      if (!/^\+380[\s()\-\d]*$/.test(raw)) return null;
+      const digits = raw.replace(/\D/g, '');
       return digits.length === 12 && digits.startsWith('380') ? '+380' + digits.slice(3) : null;
     }
 
     function validateCustomerEmail(value) {
       const email = String(value || '').trim();
-      if (email.length > 254 || /\\s/.test(email)) return false;
-      return /^[A-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i.test(email);
+      if (email.length > 254 || /\s/.test(email)) return false;
+      return /^[A-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i.test(email);
     }
 
     function collectCustomerDetails() {
@@ -3064,7 +3064,7 @@
       while (true) {
         const value = prompt('Вкажіть ім’я та прізвище для замовлення:');
         if (value === null) return null;
-        if (validateCustomerName(value)) { customerName = value.trim().replace(/\\s+/g, ' '); break; }
+        if (validateCustomerName(value)) { customerName = value.trim().replace(/\s+/g, ' '); break; }
         alert('Введіть, будь ласка, ім’я та прізвище (щонайменше два слова, лише літери, дефіс або апостроф).');
       }
       let customerPhone = '';
