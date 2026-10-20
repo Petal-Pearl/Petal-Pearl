@@ -542,8 +542,13 @@
             <p class="mt-2 text-xs text-gray-600">Вкажіть цей номер у повідомленні разом із квитанцією в Telegram. Замовлення залишатиметься «очікує оплати», доки надходження не буде перевірено вручну.</p>
             <a href="https://t.me/PetalAndPearlShopBot" target="_blank" rel="noopener noreferrer" class="mt-3 w-full bg-sky-700 text-white font-bold py-2.5 px-3 rounded-lg text-xs hover:bg-sky-800 transition flex items-center justify-center gap-1.5 shadow">
               <i class="fa-brands fa-telegram"></i>
-              <span>Надіслати квитанцію в Telegram</span>
+              <span>1. Надіслати квитанцію в Telegram</span>
             </a>
+            <button type="button" onclick="finishIbanOrder()" class="mt-2 w-full bg-vintage-green text-vintage-cream font-bold py-2.5 px-3 rounded-lg text-xs hover:bg-vintage-greenLight transition flex items-center justify-center gap-1.5 shadow border border-vintage-gold">
+              <i class="fa-solid fa-check-circle text-vintage-gold"></i>
+              <span>2. Я надіслав квитанцію — завершити замовлення</span>
+            </button>
+            <p class="mt-2 text-xs text-gray-600">Після відправлення квитанції в Telegram поверніться сюди та натисніть кнопку завершення. Кошик очиститься, а вікно оплати закриється.</p>
           </div>
           <div class="mt-3">
             <button onclick="copyIBAN()" class="w-full bg-vintage-gold text-white font-bold py-2 px-3 rounded-lg text-xs hover:bg-vintage-goldHover transition flex items-center justify-center gap-1.5 shadow">
@@ -3118,6 +3123,30 @@
         alert(error.message || 'Не вдалося створити замовлення. Спробуйте ще раз.');
         if (button) { button.disabled = false; button.style.opacity = ''; }
       }
+    }
+
+    function finishIbanOrder() {
+      const reference = (document.getElementById('ibanOrderReference')?.textContent || '').trim();
+      if (!reference.startsWith('PP-')) {
+        alert('Спочатку створіть замовлення та отримайте його номер.');
+        return;
+      }
+      // The Telegram app is external, so the website cannot detect whether the receipt was actually sent.
+      if (!confirm('Ви вже надіслали квитанцію разом із номером замовлення в Telegram? Натисніть OK, щоб очистити кошик і закрити вікно оплати.')) return;
+      cart = {};
+      updateCartUI();
+      closeModal('paymentModal');
+      closeModal('cartModal');
+      const resultPanel = document.getElementById('ibanOrderResult');
+      if (resultPanel) resultPanel.classList.add('hidden');
+      const button = document.getElementById('createIbanOrderBtn');
+      if (button) {
+        button.disabled = false;
+        button.style.opacity = '';
+        const label = button.querySelector('span');
+        if (label) label.textContent = 'Створити замовлення для переказу';
+      }
+      alert('Дякуємо! Кошик очищено. Замовлення очікує ручної перевірки оплати.');
     }
 
     // Payments are created by the Supabase Edge Function; never trust a browser-side "paid" message.
