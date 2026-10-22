@@ -2273,7 +2273,7 @@
       const fullNavList = [systemTabs.allProducts, systemTabs.sales, ...categoriesList];
       
       document.getElementById("categoryNav").innerHTML = fullNavList.map(cat => `
-        <button onclick="setCategory('${cat}')" class="px-3.5 py-1.5 rounded-lg transition ${currentCategory === cat ? 'bg-vintage-gold text-white font-bold shadow' : 'text-vintage-cream hover:bg-vintage-gold/30'}">
+        <button onclick="setCategory('${cat}')" class="px-3.5 py-1.5 rounded-lg transition ${(isAllProductsCategory(cat) && isAllProductsCategory(currentCategory)) || currentCategory === cat ? 'bg-vintage-gold text-white font-bold shadow' : 'text-vintage-cream hover:bg-vintage-gold/30'}">
           ${cat === systemTabs.sales ? '🔥 ' + cat : cat}
         </button>
       `).join('');
@@ -2286,14 +2286,25 @@
       }
     }
 
+    function normalizeCategoryLabel(value) {
+      return String(value ?? "").normalize("NFKC").replace(/&nbsp;/gi, " ").replace(/\\s+/g, " ").trim().toLocaleLowerCase("uk-UA");
+    }
+
+    function isAllProductsCategory(value) {
+      const normalized = normalizeCategoryLabel(value);
+      const configured = normalizeCategoryLabel(systemTabs.allProducts);
+      return normalized === configured || ["усі товари", "уси товары", "все товары", "all products"].includes(normalized);
+    }
+
     function setCategory(cat) {
-      currentCategory = cat;
-      localStorage.setItem('petal_pearl_current_cat', cat);
+      // Keep one canonical value for the all-products tab, including older saved labels.
+      currentCategory = isAllProductsCategory(cat) ? systemTabs.allProducts : cat;
+      localStorage.setItem('petal_pearl_current_cat', currentCategory);
       renderCategoryNav();
       
-      let titleText = cat;
-      if (cat === systemTabs.allProducts) titleText = "Повний асортимент товарів";
-      else if (cat === systemTabs.sales) titleText = "Акційні пропозиції";
+      let titleText = currentCategory;
+      if (isAllProductsCategory(currentCategory)) titleText = "Повний асортимент товарів";
+      else if (currentCategory === systemTabs.sales) titleText = "Акційні пропозиції";
       
       document.getElementById("currentCategoryTitle").innerText = titleText;
       filterProducts();
@@ -2447,12 +2458,13 @@
 
       let filtered = products.filter(p => {
         let matchesCategory = false;
-        if (currentCategory === systemTabs.allProducts) {
+        if (isAllProductsCategory(currentCategory)) {
+          // The all-products tab must never filter by product category.
           matchesCategory = true;
         } else if (currentCategory === systemTabs.sales) {
-          matchesCategory = p.badge === "SALE";
+          matchesCategory = String(p.badge || "").trim().toUpperCase() === "SALE";
         } else {
-          matchesCategory = p.category === currentCategory;
+          matchesCategory = normalizeCategoryLabel(p.category) === normalizeCategoryLabel(currentCategory);
         }
 
         const matchesSearch = p.name.toLowerCase().includes(search) || (p.category && p.category.toLowerCase().includes(search));
