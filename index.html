@@ -2980,6 +2980,8 @@
       const cartBadge = document.getElementById('cartBadge');
       if (cartButton) {
         cartButton.classList.toggle('bg-green-700', count > 0);
+        cartButton.classList.toggle('hover:bg-green-800', count > 0);
+        cartButton.classList.toggle('hover:bg-vintage-greenLight', count === 0);
         cartButton.classList.toggle('border-green-400', count > 0);
         cartButton.classList.toggle('bg-vintage-green', count === 0);
         cartButton.classList.toggle('border-vintage-gold', count === 0);
@@ -2995,6 +2997,10 @@
         const inCart = qty > 0;
         button.classList.toggle('bg-green-700', inCart);
         button.classList.toggle('bg-vintage-green', !inCart);
+        // Keep the added-to-cart green visible even while the pointer is over the button.
+        button.classList.toggle('hover:bg-green-800', inCart);
+        button.classList.toggle('hover:bg-vintage-greenLight', !inCart);
+        button.classList.toggle('border-green-400', inCart);
         if (button.closest('tr')) {
           button.innerHTML = '<i class="' + (inCart ? 'fa-solid fa-circle-check' : 'fa-solid fa-plus') + ' mr-1 text-vintage-gold"></i> ' + (inCart ? 'У кошику · ' + qty + ' шт.' : 'Замовити');
         } else {
