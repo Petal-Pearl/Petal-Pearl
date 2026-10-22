@@ -490,7 +490,7 @@
     </div>
   </div>
 
-  <!-- Оплата та Google Pay за реквізитами IBAN -->
+  <!-- Безпечна онлайн-оплата через Monobank -->
   <div id="paymentModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-vintage-cream rounded-2xl w-full max-w-lg p-6 shadow-2xl relative border-2 border-vintage-gold max-h-[90vh] overflow-y-auto">
       <button onclick="closeModal('paymentModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
@@ -1330,6 +1330,8 @@
             phone: sanitizeHTML(parsedH.phone || headerData.phone),
             hours: sanitizeHTML(parsedH.hours || headerData.hours),
             logo: parsedH.logo || headerData.logo,
+            musicUrl: parsedH.musicUrl || headerData.musicUrl,
+            siteStyles: parsedH.siteStyles && typeof parsedH.siteStyles === 'object' ? parsedH.siteStyles : headerData.siteStyles,
             heroBadge: sanitizeHTML(parsedH.heroBadge || headerData.heroBadge),
             heroTitle: sanitizeHTML(parsedH.heroTitle || headerData.heroTitle),
             heroDesc: sanitizeRichText(decodeDisplayEntities(parsedH.heroDesc || headerData.heroDesc))
@@ -1416,7 +1418,17 @@
     function applyHeaderData() {
       document.getElementById('siteTitleDisplay').innerText = decodeDisplayEntities(headerData.title);
       const audioSource = document.getElementById('bgAudioSource');
-      if (audioSource && headerData.musicUrl && audioSource.src !== headerData.musicUrl) { audioSource.src = headerData.musicUrl; document.getElementById('bgAudio').load(); }
+      const audio = document.getElementById('bgAudio');
+      if (audioSource && audio && headerData.musicUrl && audio.dataset.loadedMusicUrl !== headerData.musicUrl) {
+        audio.pause();
+        audioSource.src = headerData.musicUrl;
+        audio.src = headerData.musicUrl;
+        audio.dataset.loadedMusicUrl = headerData.musicUrl;
+        audio.load();
+        // Cloud settings may arrive after the page's first autoplay attempt.
+        // Try again here; browsers that block autoplay will still start on the next user interaction.
+        if (!musicUserDisabled) startBackgroundMusic();
+      }
       document.getElementById('siteSubtitleDisplay').innerText = decodeDisplayEntities(headerData.subtitle);
       document.getElementById('sitePhoneDisplay').innerText = headerData.phone;
       document.getElementById('siteHoursDisplay').innerText = headerData.hours;
@@ -2331,7 +2343,10 @@
         const saved = await saveHeaderState();
         if (!saved) return;
         const audio = document.getElementById('bgAudio');
+        const audioSource = document.getElementById('bgAudioSource');
+        if (audioSource) audioSource.src = nextUrl;
         audio.src = nextUrl;
+        audio.dataset.loadedMusicUrl = nextUrl;
         audio.load();
         try { await audio.play(); musicUserDisabled = false; } catch (e) { updateMusicButtonUI(); }
         closeModal('musicSettingsModal');
