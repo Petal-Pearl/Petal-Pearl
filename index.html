@@ -490,34 +490,27 @@
     </div>
   </div>
 
-  <!-- Безпечна онлайн-оплата через Monobank -->
+  <!-- Оформлення замовлення без онлайн-оплати -->
   <div id="paymentModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-vintage-cream rounded-2xl w-full max-w-lg p-6 shadow-2xl relative border-2 border-vintage-gold max-h-[90vh] overflow-y-auto">
-      <button onclick="closeModal('paymentModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-      
-      <div class="text-center mb-6">
-        <div class="w-12 h-12 bg-white text-vintage-gold rounded-full flex items-center justify-center mx-auto text-xl mb-2 border border-vintage-gold shadow">
-          <i class="fa-solid fa-receipt"></i>
-        </div>
-        <h3 class="font-serif text-2xl font-bold text-vintage-green">Вибір способу оплати</h3>
-        <p class="text-xs text-gray-600 mt-1">Загальна сума замовлення: <span id="paymentTotalAmount" class="font-bold text-vintage-green text-base">0 грн</span></p>
+      <button onclick="closeModal('paymentModal')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl" aria-label="Закрити">&times;</button>
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 bg-white text-vintage-gold rounded-full flex items-center justify-center mx-auto text-xl mb-2 border border-vintage-gold shadow"><i class="fa-solid fa-phone-volume"></i></div>
+        <h3 class="font-serif text-2xl font-bold text-vintage-green">Підтвердження замовлення</h3>
+        <p class="text-sm text-gray-700 mt-2">Сума замовлення: <span id="paymentTotalAmount" class="font-bold text-vintage-green text-base">0 грн</span></p>
       </div>
-
-      <div class="space-y-4">
-        <!-- Google Pay -->
-        <div class="bg-white p-4 rounded-xl border border-vintage-border shadow-sm">
-          <h4 class="font-bold text-sm text-vintage-green mb-2 flex items-center gap-2">
-            <i class="fa-brands fa-google text-blue-600"></i> Онлайн-оплата через Monobank / Google Pay
-          </h4>
-          <p class="text-xs text-gray-600 mb-3">Безпечна оплата на сторінці Monobank. Google Pay з’явиться, якщо його активовано для вашого еквайрингу.</p>
-          
-          <button onclick="triggerGooglePay()" class="gpay-btn-custom w-full shadow-md">
-            <i class="fa-brands fa-google text-lg"></i>
-            <span>Оплатити онлайн</span>
-          </button>
-        </div>
-
+      <div class="bg-white p-4 rounded-xl border border-vintage-border mb-4">
+        <p class="font-bold text-vintage-green mb-2">Як усе відбувається</p>
+        <ol class="text-sm text-gray-700 space-y-2 list-decimal pl-5">
+          <li>Надішліть замовлення без онлайн-оплати.</li>
+          <li>Менеджер зателефонує вам за вказаним номером, підтвердить наявність товарів і погодить доставку.</li>
+          <li>Після підтвердження менеджер повідомить спосіб оплати. Ми приймаємо оплату та відправляємо товар лише після узгодження замовлення.</li>
+        </ol>
       </div>
+      <p class="text-xs text-gray-600 mb-4">На сайті немає онлайн-оплати. Після натискання кнопки нижче вас попросять вказати контактні дані.</p>
+      <button id="confirmPhoneOrderButton" onclick="placeOrderWithoutPayment()" class="w-full bg-vintage-green text-vintage-cream font-bold py-3.5 rounded-xl hover:bg-vintage-greenLight transition flex items-center justify-center gap-2 border border-vintage-gold shadow-md">
+        <i class="fa-solid fa-phone text-vintage-gold"></i><span>Оформить заказ — без оплаты</span>
+      </button>
     </div>
   </div>
 
@@ -3115,44 +3108,42 @@
       return { customerName, customerPhone, customerEmail };
     }
 
-    // Payments are created by the Supabase Edge Function; never trust a browser-side "paid" message.
-    async function triggerGooglePay() {
+    // Orders are submitted for manager confirmation; this flow never creates an online payment.
+    async function placeOrderWithoutPayment() {
       if (!Object.keys(cart).length) {
         alert('Ваш кошик порожній!');
         return;
       }
       const customer = collectCustomerDetails();
       if (!customer) return;
-      const { customerName, customerPhone, customerEmail } = customer;
-      const button = document.querySelector('#paymentModal button[onclick="triggerGooglePay()"]');
+      const button = document.getElementById('confirmPhoneOrderButton');
       if (button) { button.disabled = true; button.style.opacity = '0.65'; }
       try {
-        const response = await fetch(SUPABASE_URL + '/functions/v1/create-monobank-invoice', {
+        const response = await fetch(SUPABASE_URL + '/functions/v1/create-phone-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
           body: JSON.stringify({
-            customerName: customerName.trim(),
-            customerPhone: customerPhone.trim(),
-            customerEmail: customerEmail.trim(),
+            customerName: customer.customerName,
+            customerPhone: customer.customerPhone,
+            customerEmail: customer.customerEmail,
             items: Object.keys(cart).map(id => ({ id: Number(id), quantity: Number(cart[id]) }))
           })
         });
         const result = await response.json().catch(() => ({}));
-        if (!response.ok || !result.paymentUrl) {
-          throw new Error(result.error || 'Не вдалося створити рахунок Monobank. Онлайн-оплата поки недоступна.');
+        if (!response.ok || !result.ok || !result.reference) {
+          throw new Error(result.error || 'Не вдалося оформити замовлення. Спробуйте ще раз.');
         }
-        // Keep the cart until the customer returns; only the signed bank webhook can confirm payment.
-        window.location.href = result.paymentUrl;
+        cart = {};
+        saveCart();
+        renderCart();
+        closeModal('paymentModal');
+        alert('Дякуємо! Замовлення ' + result.reference + ' оформлено без онлайн-оплати. Менеджер зателефонує вам за вказаним номером, підтвердить наявність і погодить доставку. Оплата — лише після узгодження замовлення.');
       } catch (error) {
-        console.error('Monobank checkout error:', error);
-        alert(error.message || 'Помилка підключення до платіжної системи. Спробуйте пізніше.');
+        console.error('Phone order error:', error);
+        alert(error.message || 'Не вдалося оформити замовлення. Спробуйте пізніше.');
+      } finally {
         if (button) { button.disabled = false; button.style.opacity = ''; }
       }
-    }
-
-    function onGooglePayLoaded() {
-      // Google Pay is offered by the Monobank-hosted checkout when enabled for the merchant.
-      // No TEST gateway or browser-side payment confirmation is used here.
     }
 
     function renderProductCategoryOptions(selectedCategory = "") {
